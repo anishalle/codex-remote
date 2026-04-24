@@ -3,6 +3,8 @@
 WARNING: THIS IS MOSTLY VIBECODED (with human checking, ofc)
 WARNING: THIS IS IN BETA (V1)
 
+<img width="1501" height="820" alt="ss" src="https://github.com/user-attachments/assets/f3971bbc-05dc-4077-a6c6-da8955093042" />
+
 If that scares you, you need not read any further.
 
 if ye decide to sail the seas:
