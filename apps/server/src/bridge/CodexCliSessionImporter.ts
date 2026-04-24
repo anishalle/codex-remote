@@ -2,10 +2,12 @@ import {
   CommandId,
   DEFAULT_MODEL_BY_PROVIDER,
   DEFAULT_PROVIDER_INTERACTION_MODE,
+  EventId,
   MessageId,
   ProjectId,
   ThreadId,
   type ModelSelection,
+  type OrchestrationThreadActivity,
 } from "@t3tools/contracts";
 import { Duration, Effect, Layer, Option, Schedule } from "effect";
 import { createHash } from "node:crypto";
@@ -23,10 +25,11 @@ const CODEX_CLI_PROJECT_ID_PREFIX = "codex-cli-project:";
 const CODEX_CLI_THREAD_ID_PREFIX = "codex-cli:";
 const CODEX_CLI_COMMAND_ID_PREFIX = "server:codex-cli-import:";
 const CODEX_CLI_SCAN_INTERVAL = Duration.seconds(2);
-const STARTUP_LOOKBACK_MS = 60_000;
+const STARTUP_LOOKBACK_MS = 10 * 60_000;
 const MAX_TITLE_LENGTH = 80;
+const MAX_TOOL_TEXT_LENGTH = 20_000;
 
-interface ImportedCodexCliMessage {
+export interface ImportedCodexCliMessage {
   readonly messageId: MessageId;
   readonly role: "user" | "assistant";
   readonly text: string;
@@ -34,7 +37,7 @@ interface ImportedCodexCliMessage {
   readonly updatedAt: string;
 }
 
-interface ParsedCodexCliSession {
+export interface ParsedCodexCliSession {
   readonly sessionId: string;
   readonly cwd: string;
   readonly title: string;
@@ -42,6 +45,14 @@ interface ParsedCodexCliSession {
   readonly sessionStartedAt: string;
   readonly updatedAt: string;
   readonly messages: ReadonlyArray<ImportedCodexCliMessage>;
+  readonly activities: ReadonlyArray<OrchestrationThreadActivity>;
+}
+
+export interface LoadedCodexCliSession {
+  readonly filePath: string;
+  readonly contents: string;
+  readonly updatedAt: string;
+  readonly session: ParsedCodexCliSession;
 }
 
 interface CodexJsonlEnvelope {
@@ -90,6 +101,10 @@ function codexCliMessageId(sessionId: string, sourceIndex: number): MessageId {
   return MessageId.make(`${CODEX_CLI_THREAD_ID_PREFIX}${sessionId}:msg:${sourceIndex}`);
 }
 
+function codexCliActivityId(sessionId: string, sourceIndex: number): EventId {
+  return EventId.make(`${CODEX_CLI_THREAD_ID_PREFIX}${sessionId}:activity:${sourceIndex}`);
+}
+
 function parseEnvelope(line: string): CodexJsonlEnvelope | null {
   try {
     const parsed = JSON.parse(line) as unknown;
@@ -103,6 +118,141 @@ function readEnvelopeTimestamp(envelope: CodexJsonlEnvelope, fallback: string): 
   return typeof envelope.timestamp === "string" && envelope.timestamp.trim().length > 0
     ? envelope.timestamp.trim()
     : fallback;
+}
+
+function parseJsonValue(input: string | undefined): unknown {
+  if (input === undefined) {
+    return undefined;
+  }
+  try {
+    return JSON.parse(input) as unknown;
+  } catch {
+    return input;
+  }
+}
+
+function truncateToolText(input: string | undefined): {
+  readonly text: string | undefined;
+  readonly truncated: boolean;
+} {
+  if (input === undefined) {
+    return { text: undefined, truncated: false };
+  }
+  if (input.length <= MAX_TOOL_TEXT_LENGTH) {
+    return { text: input, truncated: false };
+  }
+  return {
+    text: `${input.slice(0, MAX_TOOL_TEXT_LENGTH).trimEnd()}\n\n[truncated]`,
+    truncated: true,
+  };
+}
+
+function normalizeToolName(name: string): string {
+  return name.replace(/^functions\./, "");
+}
+
+function truncateSingleLine(input: string, maxLength: number): string {
+  const normalized = input.replace(/\s+/g, " ").trim();
+  if (normalized.length <= maxLength) {
+    return normalized;
+  }
+  return `${normalized.slice(0, maxLength - 3).trimEnd()}...`;
+}
+
+function toolDetail(name: string, args: unknown, input: string | undefined): string | undefined {
+  if (name === "exec_command" && isRecord(args)) {
+    const command = readString(args, "cmd");
+    return command;
+  }
+
+  if (name === "apply_patch" && input !== undefined) {
+    const interestingLine = input
+      .split("\n")
+      .map((line) => line.trim())
+      .find(
+        (line) =>
+          line.startsWith("*** Add File:") ||
+          line.startsWith("*** Update File:") ||
+          line.startsWith("*** Delete File:") ||
+          line.startsWith("*** Move to:"),
+      );
+    return interestingLine ?? "patch";
+  }
+
+  if (name === "multi_tool_use.parallel" && isRecord(args) && Array.isArray(args.tool_uses)) {
+    return `${args.tool_uses.length} tool calls`;
+  }
+
+  return undefined;
+}
+
+function buildToolSummary(name: string, detail: string | undefined): string {
+  const normalizedName = normalizeToolName(name);
+  return detail === undefined
+    ? normalizedName
+    : `${normalizedName}: ${truncateSingleLine(detail, 120)}`;
+}
+
+interface ParsedToolCall {
+  readonly sourceIndex: number;
+  readonly callId: string;
+  readonly name: string;
+  readonly argumentsText: string | undefined;
+  readonly input: string | undefined;
+  readonly status: string | undefined;
+  readonly createdAt: string;
+}
+
+interface ParsedToolOutput {
+  readonly sourceIndex: number;
+  readonly output: string;
+  readonly createdAt: string;
+}
+
+function buildToolActivity(
+  sessionId: string,
+  call: ParsedToolCall,
+  output: ParsedToolOutput | undefined,
+): OrchestrationThreadActivity {
+  const args = parseJsonValue(call.argumentsText);
+  const outputValue = parseJsonValue(output?.output);
+  const inputText = truncateToolText(call.input);
+  const outputText = truncateToolText(
+    typeof outputValue === "string" ? outputValue : output?.output,
+  );
+  const detail = toolDetail(call.name, args, call.input);
+
+  return {
+    id: codexCliActivityId(sessionId, call.sourceIndex),
+    tone: "tool",
+    kind: "codex-cli.tool",
+    summary: buildToolSummary(call.name, detail),
+    payload: {
+      source: "codex-cli",
+      itemType: normalizeToolName(call.name),
+      callId: call.callId,
+      status: call.status ?? "completed",
+      ...(detail !== undefined ? { detail } : {}),
+      ...(args !== undefined ? { arguments: args } : {}),
+      ...(inputText.text !== undefined
+        ? { input: inputText.text, inputTruncated: inputText.truncated }
+        : {}),
+      ...(output !== undefined
+        ? {
+            output:
+              typeof outputValue === "string"
+                ? outputText.text
+                : outputValue ?? outputText.text,
+            outputTruncated: outputText.truncated,
+            outputCreatedAt: output.createdAt,
+            outputSourceIndex: output.sourceIndex,
+          }
+        : {}),
+    },
+    turnId: null,
+    sequence: call.sourceIndex,
+    createdAt: call.createdAt,
+  };
 }
 
 function readAssistantResponseText(payload: Record<string, unknown>): string | undefined {
@@ -133,6 +283,8 @@ export function parseCodexCliSessionJsonl(input: {
   let model: string | undefined;
   let firstUserMessage: string | undefined;
   const messages: Array<Omit<ImportedCodexCliMessage, "messageId"> & { sourceIndex: number }> = [];
+  const toolCalls: ParsedToolCall[] = [];
+  const toolOutputs = new Map<string, ParsedToolOutput>();
 
   for (const [sourceIndex, line] of input.contents.split("\n").entries()) {
     const trimmed = line.trim();
@@ -180,6 +332,47 @@ export function parseCodexCliSessionJsonl(input: {
 
     if (
       envelope.type === "response_item" &&
+      (envelope.payload.type === "function_call" ||
+        envelope.payload.type === "custom_tool_call") &&
+      isRecord(envelope.payload)
+    ) {
+      const callId = readString(envelope.payload, "call_id");
+      const name = readString(envelope.payload, "name");
+      if (callId !== undefined && name !== undefined) {
+        const createdAt = readEnvelopeTimestamp(envelope, input.updatedAt);
+        toolCalls.push({
+          sourceIndex,
+          callId,
+          name,
+          argumentsText: readString(envelope.payload, "arguments"),
+          input: readString(envelope.payload, "input"),
+          status: readString(envelope.payload, "status"),
+          createdAt,
+        });
+      }
+      continue;
+    }
+
+    if (
+      envelope.type === "response_item" &&
+      (envelope.payload.type === "function_call_output" ||
+        envelope.payload.type === "custom_tool_call_output") &&
+      isRecord(envelope.payload)
+    ) {
+      const callId = readString(envelope.payload, "call_id");
+      const output = readString(envelope.payload, "output");
+      if (callId !== undefined && output !== undefined) {
+        toolOutputs.set(callId, {
+          sourceIndex,
+          output,
+          createdAt: readEnvelopeTimestamp(envelope, input.updatedAt),
+        });
+      }
+      continue;
+    }
+
+    if (
+      envelope.type === "response_item" &&
       envelope.payload.type === "message" &&
       envelope.payload.role === "assistant"
     ) {
@@ -215,6 +408,9 @@ export function parseCodexCliSessionJsonl(input: {
       ...message,
       messageId: codexCliMessageId(sessionId, sourceIndex),
     })),
+    activities: toolCalls.map((call) =>
+      buildToolActivity(sessionId, call, toolOutputs.get(call.callId)),
+    ),
   };
 }
 
@@ -247,46 +443,62 @@ async function collectCodexSessionFiles(root: string): Promise<ReadonlyArray<str
   return collected;
 }
 
-const loadUpdatedCodexSessions = Effect.fn("loadUpdatedCodexSessions")(function* (input: {
+export async function loadUpdatedCodexCliSessionsFromDisk(input: {
   readonly root: string;
   readonly updatedSinceMs: number;
-}) {
-  const files = yield* Effect.tryPromise(() => collectCodexSessionFiles(input.root));
-  const sessions: ParsedCodexCliSession[] = [];
+}): Promise<ReadonlyArray<LoadedCodexCliSession>> {
+  const files = await collectCodexSessionFiles(input.root);
+  const sessions: LoadedCodexCliSession[] = [];
 
   for (const filePath of files) {
-    const fileStat = yield* Effect.tryPromise(() => stat(filePath)).pipe(
-      Effect.catch(() => Effect.succeed(null)),
-    );
-    if (!fileStat || fileStat.mtimeMs < input.updatedSinceMs) {
+    let fileStat: Awaited<ReturnType<typeof stat>>;
+    try {
+      fileStat = await stat(filePath);
+    } catch {
+      continue;
+    }
+    if (fileStat.mtimeMs < input.updatedSinceMs) {
       continue;
     }
 
-    const contents = yield* Effect.tryPromise(() => readFile(filePath, "utf8")).pipe(
-      Effect.catch(() => Effect.succeed(null)),
-    );
-    if (contents === null) {
+    let contents: string;
+    try {
+      contents = await readFile(filePath, "utf8");
+    } catch {
       continue;
     }
 
-    const parsed = parseCodexCliSessionJsonl({
+    const updatedAt = fileStat.mtime.toISOString();
+    const session = parseCodexCliSessionJsonl({
       filePath,
       contents,
-      updatedAt: fileStat.mtime.toISOString(),
+      updatedAt,
     });
-    if (parsed !== null) {
-      sessions.push(parsed);
+    if (session !== null) {
+      sessions.push({
+        filePath,
+        contents,
+        updatedAt,
+        session,
+      });
     }
   }
 
   return sessions;
+}
+
+const loadUpdatedCodexSessions = Effect.fn("loadUpdatedCodexSessions")(function* (input: {
+  readonly root: string;
+  readonly updatedSinceMs: number;
+}) {
+  const loaded = yield* Effect.tryPromise(() => loadUpdatedCodexCliSessionsFromDisk(input));
+  return loaded.map((entry) => entry.session);
 });
 
-const importSession = Effect.fn("importCodexCliSession")(function* (
+export const importCodexCliSessionReadModel = Effect.fn("importCodexCliSessionReadModel")(function* (
   session: ParsedCodexCliSession,
 ) {
   const orchestrationEngine = yield* OrchestrationEngineService;
-  const providerSessionDirectory = yield* ProviderSessionDirectory;
   const readModel = yield* orchestrationEngine.getReadModel();
   const existingProject = readModel.projects.find(
     (project) => project.deletedAt === null && project.workspaceRoot === session.cwd,
@@ -354,6 +566,26 @@ const importSession = Effect.fn("importCodexCliSession")(function* (
     });
   }
 
+  const afterMessagesReadModel = yield* orchestrationEngine.getReadModel();
+  const afterMessagesThread = afterMessagesReadModel.threads.find((thread) => thread.id === threadId);
+  const existingActivities = new Map(
+    afterMessagesThread?.activities.map((activity) => [activity.id, activity]) ?? [],
+  );
+  for (const activity of session.activities) {
+    const existingActivity = existingActivities.get(activity.id);
+    if (existingActivity !== undefined && JSON.stringify(existingActivity) === JSON.stringify(activity)) {
+      continue;
+    }
+
+    yield* orchestrationEngine.dispatch({
+      type: "thread.activity.append",
+      commandId: commandId("activity"),
+      threadId,
+      activity,
+      createdAt: activity.createdAt,
+    });
+  }
+
   const latestReadModel = yield* orchestrationEngine.getReadModel();
   const latestThread = latestReadModel.threads.find((thread) => thread.id === threadId);
   if (latestThread?.session?.updatedAt !== session.updatedAt) {
@@ -373,6 +605,19 @@ const importSession = Effect.fn("importCodexCliSession")(function* (
       createdAt: session.updatedAt,
     });
   }
+
+  return {
+    projectId,
+    threadId,
+  };
+});
+
+export const importCodexCliSession = Effect.fn("importCodexCliSession")(function* (
+  session: ParsedCodexCliSession,
+) {
+  const imported = yield* importCodexCliSessionReadModel(session);
+  const providerSessionDirectory = yield* ProviderSessionDirectory;
+  const threadId = imported.threadId;
 
   const existingBinding = yield* providerSessionDirectory.getBinding(threadId);
   const binding = Option.getOrUndefined(existingBinding);
@@ -409,7 +654,7 @@ export const CodexCliSessionImporterLive = Layer.effectDiscard(
 
     const sync = loadUpdatedCodexSessions({ root: sessionsRoot, updatedSinceMs }).pipe(
       Effect.flatMap((sessions) =>
-        Effect.forEach(sessions, importSession, {
+        Effect.forEach(sessions, (session) => importCodexCliSession(session), {
           concurrency: 4,
           discard: true,
         }),

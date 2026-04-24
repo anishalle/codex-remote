@@ -1,4 +1,4 @@
-import { DEFAULT_MODEL_BY_PROVIDER, MessageId } from "@t3tools/contracts";
+import { DEFAULT_MODEL_BY_PROVIDER, EventId, MessageId } from "@t3tools/contracts";
 import { assert, describe, it } from "@effect/vitest";
 
 import {
@@ -81,6 +81,71 @@ describe("parseCodexCliSessionJsonl", () => {
           updatedAt: "2026-04-24T07:01:30.000Z",
         },
       ],
+      activities: [],
+    });
+  });
+
+  it("imports Codex CLI tool calls as deterministic thread activities", () => {
+    const parsed = parseCodexCliSessionJsonl({
+      filePath: "/tmp/session.jsonl",
+      updatedAt: "2026-04-24T08:00:00.000Z",
+      contents: [
+        JSON.stringify({
+          type: "session_meta",
+          payload: {
+            id: "session-tools",
+            cwd: "/repo",
+          },
+        }),
+        JSON.stringify({
+          timestamp: "2026-04-24T07:01:00.000Z",
+          type: "response_item",
+          payload: {
+            type: "function_call",
+            name: "exec_command",
+            arguments: JSON.stringify({
+              cmd: "git status --short",
+              workdir: "/repo",
+            }),
+            call_id: "call_1",
+          },
+        }),
+        JSON.stringify({
+          timestamp: "2026-04-24T07:01:01.000Z",
+          type: "response_item",
+          payload: {
+            type: "function_call_output",
+            call_id: "call_1",
+            output: "Output:\n## t3\n",
+          },
+        }),
+      ].join("\n"),
+    });
+
+    assert.equal(parsed?.activities.length, 1);
+    assert.deepStrictEqual(parsed?.activities[0], {
+      id: EventId.make("codex-cli:session-tools:activity:1"),
+      tone: "tool",
+      kind: "codex-cli.tool",
+      summary: "exec_command: git status --short",
+      payload: {
+        source: "codex-cli",
+        itemType: "exec_command",
+        callId: "call_1",
+        status: "completed",
+        detail: "git status --short",
+        arguments: {
+          cmd: "git status --short",
+          workdir: "/repo",
+        },
+        output: "Output:\n## t3",
+        outputTruncated: false,
+        outputCreatedAt: "2026-04-24T07:01:01.000Z",
+        outputSourceIndex: 2,
+      },
+      turnId: null,
+      sequence: 1,
+      createdAt: "2026-04-24T07:01:00.000Z",
     });
   });
 
@@ -103,5 +168,6 @@ describe("parseCodexCliSessionJsonl", () => {
     assert.match(projectId, /^codex-cli-project:[a-f0-9]{16}$/);
     assert.equal(parsed?.modelSelection.model, DEFAULT_MODEL_BY_PROVIDER.codex);
     assert.deepStrictEqual(parsed?.messages, []);
+    assert.deepStrictEqual(parsed?.activities, []);
   });
 });

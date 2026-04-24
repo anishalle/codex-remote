@@ -2,8 +2,9 @@ import * as NodeRuntime from "@effect/platform-node/NodeRuntime";
 import * as NodeServices from "@effect/platform-node/NodeServices";
 import { NetService } from "@t3tools/shared/Net";
 import { Effect, Layer, Option } from "effect";
-import { spawn } from "node:child_process";
+import { execFile, spawn } from "node:child_process";
 import { createInterface } from "node:readline/promises";
+import * as readline from "node:readline";
 import * as fs from "node:fs/promises";
 import * as fsSync from "node:fs";
 import os from "node:os";
@@ -13,10 +14,18 @@ import { fileURLToPath } from "node:url";
 
 import { resolveServerConfig, type CliServerFlags } from "./cli.ts";
 import { ServerConfig } from "./config.ts";
+import {
+  loadUpdatedCodexCliSessionsFromDisk,
+  type LoadedCodexCliSession,
+  type ParsedCodexCliSession,
+} from "./bridge/CodexCliSessionImporter.ts";
 import { runServer } from "./server.ts";
 
 const DEFAULT_REMOTE_URL = "https://codex.anishalle.com";
 const INTERNAL_DAEMON_COMMAND = "__daemon";
+const PUSH_LOOKBACK_MS = 10 * 60_000;
+const ONE_GIB = 1024 * 1024 * 1024;
+const T3R_PUSH_METADATA_DIR = ".t3r-push";
 
 type T3rPaths = {
   readonly configDir: string;
@@ -29,6 +38,23 @@ type TokenValidationResult = "valid" | "invalid" | "unknown";
 
 interface BridgeTokenState {
   readonly refreshed: boolean;
+}
+
+interface PushCandidate {
+  readonly loaded: LoadedCodexCliSession;
+  readonly repoName: string;
+  readonly displayLabel: string;
+}
+
+interface PushResult {
+  readonly ok?: boolean;
+  readonly workspacePath?: unknown;
+  readonly repoName?: unknown;
+  readonly projectId?: unknown;
+  readonly threadId?: unknown;
+  readonly title?: unknown;
+  readonly messageCount?: unknown;
+  readonly activityCount?: unknown;
 }
 
 function resolveConfigDir(): string {
@@ -256,6 +282,318 @@ async function delay(ms: number): Promise<void> {
   await new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+function formatBytes(bytes: number): string {
+  if (bytes >= 1024 * 1024 * 1024) {
+    return `${(bytes / (1024 * 1024 * 1024)).toFixed(1)} GB`;
+  }
+  if (bytes >= 1024 * 1024) {
+    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+  }
+  if (bytes >= 1024) {
+    return `${(bytes / 1024).toFixed(1)} KB`;
+  }
+  return `${bytes} B`;
+}
+
+function runProcess(
+  command: string,
+  args: ReadonlyArray<string>,
+  options: {
+    readonly cwd?: string;
+    readonly stdio?: "pipe" | "inherit";
+  } = {},
+): Promise<{ readonly stdout: string; readonly stderr: string }> {
+  return new Promise((resolve, reject) => {
+    const child = spawn(command, args, {
+      cwd: options.cwd,
+      stdio: options.stdio === "inherit" ? "inherit" : ["ignore", "pipe", "pipe"],
+    });
+    const stdout: Buffer[] = [];
+    const stderr: Buffer[] = [];
+    if (child.stdout) {
+      child.stdout.on("data", (chunk) => stdout.push(Buffer.from(chunk)));
+    }
+    if (child.stderr) {
+      child.stderr.on("data", (chunk) => stderr.push(Buffer.from(chunk)));
+    }
+    child.on("error", reject);
+    child.on("close", (code) => {
+      const stdoutText = Buffer.concat(stdout).toString("utf8");
+      const stderrText = Buffer.concat(stderr).toString("utf8");
+      if (code === 0) {
+        resolve({ stdout: stdoutText, stderr: stderrText });
+        return;
+      }
+      reject(
+        new Error(
+          `${command} ${args.join(" ")} failed with exit code ${code ?? "unknown"}${
+            stderrText ? `: ${stderrText}` : ""
+          }`,
+        ),
+      );
+    });
+  });
+}
+
+async function execFileStdout(command: string, args: ReadonlyArray<string>): Promise<string> {
+  return await new Promise((resolve, reject) => {
+    execFile(command, [...args], { encoding: "utf8" }, (error, stdout, stderr) => {
+      if (error) {
+        reject(new Error(stderr || error.message));
+        return;
+      }
+      resolve(stdout);
+    });
+  });
+}
+
+async function directorySizeBytes(directory: string): Promise<number> {
+  const output = await execFileStdout("du", ["-sk", directory]);
+  const sizeKiB = Number.parseInt(output.trim().split(/\s+/)[0] ?? "", 10);
+  if (!Number.isFinite(sizeKiB) || sizeKiB < 0) {
+    throw new Error(`Could not calculate workspace size for ${directory}.`);
+  }
+  return sizeKiB * 1024;
+}
+
+async function confirmPrompt(question: string): Promise<boolean> {
+  const rl = createInterface({
+    input: process.stdin,
+    output: process.stdout,
+  });
+  try {
+    const answer = (await rl.question(`${question} [y/N] `)).trim().toLowerCase();
+    return answer === "y" || answer === "yes";
+  } finally {
+    rl.close();
+  }
+}
+
+function codexSessionsRoot(): string {
+  const codexHome = process.env.CODEX_HOME?.trim() || path.join(os.homedir(), ".codex");
+  return path.join(codexHome, "sessions");
+}
+
+async function resolvePushUpdatedSinceMs(paths: T3rPaths): Promise<number> {
+  const pid = await readPid(paths.pidPath);
+  if (pid && isProcessAlive(pid)) {
+    try {
+      const pidFileStat = await fs.stat(paths.pidPath);
+      return pidFileStat.mtimeMs - PUSH_LOOKBACK_MS;
+    } catch {
+      return Date.now() - PUSH_LOOKBACK_MS;
+    }
+  }
+  return Date.now() - PUSH_LOOKBACK_MS;
+}
+
+function buildPushCandidates(loaded: ReadonlyArray<LoadedCodexCliSession>): ReadonlyArray<PushCandidate> {
+  const repoCounts = new Map<string, number>();
+  for (const entry of loaded) {
+    const repoName = path.basename(entry.session.cwd);
+    repoCounts.set(repoName, (repoCounts.get(repoName) ?? 0) + 1);
+  }
+
+  return loaded
+    .toSorted((left, right) => right.session.updatedAt.localeCompare(left.session.updatedAt))
+    .map((entry) => {
+      const repoName = path.basename(entry.session.cwd);
+      const displayLabel =
+        (repoCounts.get(repoName) ?? 0) > 1 ? `${repoName} - ${entry.session.title}` : repoName;
+      return {
+        loaded: entry,
+        repoName,
+        displayLabel,
+      };
+    });
+}
+
+function transcriptForSession(session: ParsedCodexCliSession): string {
+  const lines: string[] = [
+    `# ${session.title}`,
+    "",
+    `cwd: ${session.cwd}`,
+    `session: ${session.sessionId}`,
+    `updated: ${session.updatedAt}`,
+    "",
+  ];
+
+  for (const message of session.messages) {
+    lines.push(`## ${message.role === "user" ? "User" : "Assistant"} - ${message.createdAt}`);
+    lines.push("");
+    lines.push(message.text);
+    lines.push("");
+  }
+
+  if (session.activities.length > 0) {
+    lines.push("## Tool Calls");
+    lines.push("");
+    for (const activity of session.activities) {
+      lines.push(`### ${activity.summary}`);
+      const payload = activity.payload;
+      if (payload && typeof payload === "object") {
+        const detail = (payload as { readonly detail?: unknown }).detail;
+        if (typeof detail === "string" && detail.trim().length > 0) {
+          lines.push(detail);
+        }
+      }
+      lines.push("");
+    }
+  }
+
+  return lines.join("\n");
+}
+
+async function openCandidateInVim(candidate: PushCandidate): Promise<void> {
+  const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "t3r-transcript-"));
+  const transcriptPath = path.join(tempDir, "conversation.md");
+  await fs.writeFile(transcriptPath, transcriptForSession(candidate.loaded.session), "utf8");
+
+  if (process.stdin.isTTY) {
+    process.stdin.setRawMode(false);
+  }
+  process.stdin.pause();
+  process.stdout.write("\x1b[?25h\x1b[2J\x1b[H");
+  await runProcess("vim", [transcriptPath], { stdio: "inherit" }).catch((error) => {
+    console.error(error instanceof Error ? error.message : String(error));
+  });
+  process.stdin.resume();
+  if (process.stdin.isTTY) {
+    process.stdin.setRawMode(true);
+  }
+}
+
+function renderPicker(candidates: ReadonlyArray<PushCandidate>, selectedIndex: number): void {
+  process.stdout.write("\x1b[2J\x1b[H\x1b[?25l");
+  process.stdout.write("t3r push\n\n");
+  process.stdout.write("Enter selects. Tab opens history in vim. q cancels.\n\n");
+  candidates.forEach((candidate, index) => {
+    const marker = index === selectedIndex ? ">" : " ";
+    const session = candidate.loaded.session;
+    process.stdout.write(`${marker} ${candidate.displayLabel}\n`);
+    process.stdout.write(`  ${session.cwd}\n`);
+    process.stdout.write(`  updated ${session.updatedAt}\n`);
+  });
+}
+
+async function pickPushCandidate(
+  candidates: ReadonlyArray<PushCandidate>,
+): Promise<PushCandidate | null> {
+  if (!process.stdin.isTTY || !process.stdout.isTTY) {
+    throw new Error("t3r push needs an interactive terminal.");
+  }
+
+  let selectedIndex = 0;
+  readline.emitKeypressEvents(process.stdin);
+  process.stdin.setRawMode(true);
+  process.stdin.resume();
+
+  try {
+    for (;;) {
+      renderPicker(candidates, selectedIndex);
+      const key = await new Promise<readline.Key>((resolve) => {
+        process.stdin.once("keypress", (_str, pressedKey) => resolve(pressedKey));
+      });
+
+      if (key.ctrl && key.name === "c") {
+        return null;
+      }
+      if (key.name === "q" || key.name === "escape") {
+        return null;
+      }
+      if (key.name === "up" || key.name === "k") {
+        selectedIndex = (selectedIndex - 1 + candidates.length) % candidates.length;
+        continue;
+      }
+      if (key.name === "down" || key.name === "j") {
+        selectedIndex = (selectedIndex + 1) % candidates.length;
+        continue;
+      }
+      if (key.name === "tab") {
+        await openCandidateInVim(candidates[selectedIndex]!);
+        continue;
+      }
+      if (key.name === "return" || key.name === "enter") {
+        return candidates[selectedIndex] ?? null;
+      }
+    }
+  } finally {
+    process.stdin.setRawMode(false);
+    process.stdout.write("\x1b[?25h\x1b[2J\x1b[H");
+  }
+}
+
+async function createPushArchive(candidate: PushCandidate): Promise<{
+  readonly archivePath: string;
+  readonly tempDir: string;
+  readonly archiveBytes: number;
+}> {
+  const workspaceRoot = candidate.loaded.session.cwd;
+  const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "t3r-push-"));
+  const metadataRoot = path.join(tempDir, "metadata");
+  const metadataDir = path.join(metadataRoot, T3R_PUSH_METADATA_DIR);
+  const archivePath = path.join(tempDir, `${candidate.repoName}.tar.gz`);
+  await fs.mkdir(metadataDir, { recursive: true });
+  await fs.writeFile(path.join(metadataDir, "session.jsonl"), candidate.loaded.contents, "utf8");
+  await fs.writeFile(
+    path.join(metadataDir, "metadata.json"),
+    JSON.stringify(
+      {
+        repoName: candidate.repoName,
+        sessionId: candidate.loaded.session.sessionId,
+        sourceCwd: workspaceRoot,
+        createdAt: new Date().toISOString(),
+      },
+      null,
+      2,
+    ),
+    "utf8",
+  );
+
+  await runProcess("tar", [
+    "-czf",
+    archivePath,
+    "-C",
+    workspaceRoot,
+    ".",
+    "-C",
+    metadataRoot,
+    T3R_PUSH_METADATA_DIR,
+  ]);
+  const archiveStat = await fs.stat(archivePath);
+  return {
+    archivePath,
+    tempDir,
+    archiveBytes: archiveStat.size,
+  };
+}
+
+async function pushArchive(input: {
+  readonly remoteUrl: string;
+  readonly token: string;
+  readonly candidate: PushCandidate;
+  readonly archivePath: string;
+  readonly archiveBytes: number;
+}): Promise<PushResult> {
+  const response = await fetch(endpointUrl(input.remoteUrl, "/api/t3r/push"), {
+    method: "POST",
+    headers: {
+      authorization: `Bearer ${input.token}`,
+      "content-type": "application/gzip",
+      "content-length": String(input.archiveBytes),
+      "x-t3r-repo-name": encodeURIComponent(input.candidate.repoName),
+      "x-t3r-session-id": input.candidate.loaded.session.sessionId,
+    },
+    body: fsSync.createReadStream(input.archivePath) as never,
+    duplex: "half",
+  } as RequestInit & { readonly duplex: "half" });
+
+  if (!response.ok) {
+    throw new Error(await readResponseError(response, `t3r push failed with ${response.status}.`));
+  }
+  return (await response.json()) as PushResult;
+}
+
 async function terminateDaemonProcess(pid: number, pidPath: string): Promise<boolean> {
   process.kill(pid, "SIGTERM");
   for (let attempt = 0; attempt < 20; attempt += 1) {
@@ -400,6 +738,78 @@ function runDaemon(): void {
   NodeRuntime.runMain(program);
 }
 
+async function runPush(paths: T3rPaths, remoteUrl: string): Promise<void> {
+  await ensureBridgeToken(remoteUrl, paths);
+  const token = await readSavedToken(paths.tokenPath);
+  if (!token) {
+    throw new Error("t3r auth was not saved.");
+  }
+
+  const updatedSinceMs = await resolvePushUpdatedSinceMs(paths);
+  const loaded = await loadUpdatedCodexCliSessionsFromDisk({
+    root: codexSessionsRoot(),
+    updatedSinceMs,
+  });
+  const candidates = buildPushCandidates(loaded).filter((candidate) => {
+    const cwd = candidate.loaded.session.cwd;
+    try {
+      return candidate.repoName.length > 0 && fsSync.statSync(cwd).isDirectory();
+    } catch {
+      return false;
+    }
+  });
+
+  if (candidates.length === 0) {
+    console.log("No recent Codex chats found for t3r push.");
+    console.log("The picker includes chats updated since 10 minutes before t3r started.");
+    return;
+  }
+
+  const candidate = await pickPushCandidate(candidates);
+  if (candidate === null) {
+    console.log("t3r push cancelled.");
+    return;
+  }
+
+  const workspaceSize = await directorySizeBytes(candidate.loaded.session.cwd);
+  if (workspaceSize > ONE_GIB) {
+    const confirmed = await confirmPrompt(
+      `Workspace ${candidate.repoName} is ${formatBytes(workspaceSize)} before compression. Continue?`,
+    );
+    if (!confirmed) {
+      console.log("t3r push cancelled.");
+      return;
+    }
+  }
+
+  console.log(`Packaging ${candidate.repoName} from ${candidate.loaded.session.cwd}...`);
+  const archive = await createPushArchive(candidate);
+  try {
+    console.log(`Uploading ${formatBytes(archive.archiveBytes)} to ${remoteUrl}...`);
+    const result = await pushArchive({
+      remoteUrl,
+      token,
+      candidate,
+      archivePath: archive.archivePath,
+      archiveBytes: archive.archiveBytes,
+    });
+    console.log(`Pushed ${String(result.title ?? candidate.loaded.session.title)}.`);
+    if (typeof result.workspacePath === "string") {
+      console.log(`Workspace: ${result.workspacePath}`);
+    }
+    if (typeof result.threadId === "string") {
+      console.log(`Thread: ${result.threadId}`);
+    }
+    console.log(
+      `Imported ${Number(result.messageCount ?? candidate.loaded.session.messages.length)} messages and ${Number(
+        result.activityCount ?? candidate.loaded.session.activities.length,
+      )} tool calls.`,
+    );
+  } finally {
+    await fs.rm(archive.tempDir, { recursive: true, force: true }).catch(() => undefined);
+  }
+}
+
 async function main(): Promise<void> {
   const command = process.argv[2]?.trim();
   const paths = resolvePaths();
@@ -414,14 +824,21 @@ async function main(): Promise<void> {
     return;
   }
 
+  const remoteUrl = resolveRemoteUrl();
+
+  if (command === "push") {
+    await runPush(paths, remoteUrl);
+    return;
+  }
+
   if (command && command !== "start") {
     console.error("Usage: t3r");
     console.error("       t3r stop");
+    console.error("       t3r push");
     process.exitCode = 1;
     return;
   }
 
-  const remoteUrl = resolveRemoteUrl();
   const tokenState = await ensureBridgeToken(remoteUrl, paths);
   await startDaemon(paths, remoteUrl, { restartIfRunning: tokenState.refreshed });
 }

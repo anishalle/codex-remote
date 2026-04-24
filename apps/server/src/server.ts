@@ -85,6 +85,7 @@ import {
   orchestrationDispatchRouteLayer,
   orchestrationSnapshotRouteLayer,
 } from "./orchestration/http.ts";
+import { t3rPushRouteLayer } from "./t3rPush/http.ts";
 import { NetService } from "@t3tools/shared/Net";
 
 const PtyAdapterLive = Layer.unwrap(
@@ -279,6 +280,7 @@ export const makeRoutesLayer = Layer.mergeAll(
   localBridgePollRouteLayer,
   localBridgeResponseRouteLayer,
   localBridgeStreamRouteLayer,
+  t3rPushRouteLayer,
   attachmentsRouteLayer,
   orchestrationDispatchRouteLayer,
   orchestrationSnapshotRouteLayer,

@@ -19,7 +19,7 @@ services:
     volumes:
       - ${T3_SERVER_DATA_DIR:-/home/opc/.t3-server-data}:/data
       - ${T3_CODEX_HOME_DIR:-/home/opc/.t3-codex-home}:/codex-home
-      - .:/workspace/codex-remote
+      - ${T3_WORKSPACE_ROOT_DIR:-/home/opc/t3-workspaces}:/workspace
     cap_drop:
       - ALL
     security_opt:
