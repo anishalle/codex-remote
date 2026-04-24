@@ -6,6 +6,7 @@ import { SessionCredentialService } from "../auth/Services/SessionCredentialServ
 import { ServerConfig } from "../config.ts";
 import { ServerEnvironment } from "../environment/Services/ServerEnvironment.ts";
 import { bootstrapPublicBridgeBearerSession, runLocalBridgeClient } from "./LocalBridgeClient.ts";
+import { LOCAL_BRIDGE_SERVER_STARTED_AT } from "./localBridgeTiming.ts";
 
 class LocalBridgeBootstrapError extends Data.TaggedError("LocalBridgeBootstrapError")<{
   readonly message: string;
@@ -105,7 +106,7 @@ export const LocalBridgeClientLive = Layer.effectDiscard(
       publicBearerToken: bearerToken,
       localWsUrl: localWsUrl.toString(),
       environment,
-      startedAt: new Date().toISOString(),
+      startedAt: LOCAL_BRIDGE_SERVER_STARTED_AT,
     }).pipe(Effect.forkDetach);
   }),
 );

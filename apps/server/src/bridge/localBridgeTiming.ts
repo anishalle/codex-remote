@@ -1,0 +1,4 @@
+export const LOCAL_BRIDGE_SERVER_STARTED_AT_MS = Date.now();
+export const LOCAL_BRIDGE_SERVER_STARTED_AT = new Date(
+  LOCAL_BRIDGE_SERVER_STARTED_AT_MS,
+).toISOString();

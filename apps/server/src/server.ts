@@ -70,6 +70,7 @@ import {
   localBridgeResponseRouteLayer,
   localBridgeStreamRouteLayer,
 } from "./bridge/http.ts";
+import { CodexCliSessionImporterLive } from "./bridge/CodexCliSessionImporter.ts";
 import { LocalBridgeClientLive } from "./bridge/LocalBridgeRuntime.ts";
 import { LocalBridgeRegistryLive } from "./bridge/LocalBridgeRegistry.ts";
 import { ServerSecretStoreLive } from "./auth/Layers/ServerSecretStore.ts";
@@ -227,7 +228,10 @@ const AuthLayerLive = ServerAuthLive.pipe(
   Layer.provide(ServerSecretStoreLive),
 );
 
-const ProviderRuntimeLayerLive = ProviderSessionReaperLive.pipe(
+const ProviderRuntimeLayerLive = Layer.mergeAll(
+  ProviderSessionReaperLive,
+  CodexCliSessionImporterLive,
+).pipe(
   Layer.provideMerge(ProviderLayerLive),
   Layer.provideMerge(OrchestrationLayerLive),
 );
