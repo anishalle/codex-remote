@@ -907,6 +907,11 @@ const sessionRoleFlag = Flag.choice("role", ["owner", "client"]).pipe(
   Flag.withDefault("owner"),
 );
 
+const pairingRoleFlag = Flag.choice("role", ["client", "owner"]).pipe(
+  Flag.withDescription("Role for the issued pairing token."),
+  Flag.withDefault("client"),
+);
+
 const labelFlag = Flag.string("label").pipe(
   Flag.withDescription("Optional human-readable label."),
   Flag.optional,
@@ -931,18 +936,20 @@ const pairingCreateCommand = Command.make("create", {
   ...authLocationFlags,
   ttl: ttlFlag,
   label: labelFlag,
+  role: pairingRoleFlag,
   baseUrl: baseUrlFlag,
   json: jsonFlag,
 }).pipe(
-  Command.withDescription("Issue a new client pairing token."),
+  Command.withDescription("Issue a new pairing token."),
   Command.withHandler((flags) =>
     runWithAuthControlPlane(
       flags,
       (authControlPlane) =>
         Effect.gen(function* () {
+          const role = flags.role;
           const issued = yield* authControlPlane.createPairingLink({
-            role: "client",
-            subject: "one-time-token",
+            role,
+            subject: role === "owner" ? "owner-bootstrap" : "one-time-token",
             ...(Option.isSome(flags.ttl) ? { ttl: flags.ttl.value } : {}),
             ...(Option.isSome(flags.label) ? { label: flags.label.value } : {}),
           });

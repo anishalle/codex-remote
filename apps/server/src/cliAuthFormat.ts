@@ -58,7 +58,7 @@ export function formatIssuedPairingCredential(
 
   return (
     [
-      `Issued client pairing token ${credential.id}.`,
+      `Issued ${credential.role} pairing token ${credential.id}.`,
       `Token: ${credential.credential}`,
       ...(pairUrl ? [`Pair URL: ${pairUrl}`] : []),
       `Expires at: ${credential.expiresAt}`,
