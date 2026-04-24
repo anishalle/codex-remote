@@ -1,0 +1,17 @@
+{
+  "name": "codex-remote",
+  "private": true,
+  "type": "module",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "start:cloud-server": "node apps/cloud-server/src/index.ts",
+    "start:mac-runner": "node apps/mac-runner-cli/src/index.ts",
+    "test": "node --test apps/cloud-server/test/*.test.ts apps/mac-runner-cli/test/*.test.ts"
+  },
+  "engines": {
+    "node": ">=25.0.0"
+  }
+}

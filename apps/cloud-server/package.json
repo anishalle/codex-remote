@@ -1,0 +1,10 @@
+{
+  "name": "@codex-remote/cloud-server",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node src/index.ts",
+    "test": "node --test test/*.test.ts"
+  }
+}

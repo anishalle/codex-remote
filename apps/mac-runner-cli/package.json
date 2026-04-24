@@ -1,0 +1,12 @@
+{
+  "name": "@codex-remote/mac-runner-cli",
+  "private": true,
+  "type": "module",
+  "bin": {
+    "cloudcodex": "./src/index.ts"
+  },
+  "scripts": {
+    "start": "node ./src/index.ts",
+    "test": "node --test ./test/*.test.ts"
+  }
+}
