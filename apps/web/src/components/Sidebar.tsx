@@ -925,13 +925,7 @@ const SidebarProjectItem = memo(function SidebarProjectItem(props: SidebarProjec
   const defaultThreadEnvMode = useSettings<ThreadEnvMode>(
     (settings) => settings.defaultThreadEnvMode,
   );
-  const hasLocalEnvironment = useSavedEnvironmentRuntimeStore(
-    useShallow((state) =>
-      project.memberProjects.some(
-        (member) => state.byId[member.environmentId]?.descriptor?.origin === "local",
-      ),
-    ),
-  );
+  const hasLocalEnvironment = project.environmentPresence !== "remote-only";
   const projectGroupingSettings = useSettings((settings) => ({
     sidebarProjectGroupingMode: settings.sidebarProjectGroupingMode,
     sidebarProjectGroupingOverrides: settings.sidebarProjectGroupingOverrides,

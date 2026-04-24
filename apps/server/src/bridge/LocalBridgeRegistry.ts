@@ -14,6 +14,7 @@ export interface LocalBridgeCommand {
 
 export interface LocalBridgeRegisterInput {
   readonly environment: ExecutionEnvironmentDescriptor;
+  readonly startedAt?: string | undefined;
 }
 
 export interface LocalBridgeResponseInput {
@@ -189,7 +190,7 @@ function makeRegistry(): LocalBridgeRegistryShape {
     register: (input) =>
       Effect.sync(() => {
         const environment = normalizeLocalEnvironment(input.environment);
-        const connectedAt = nowIso();
+        const connectedAt = input.startedAt ?? nowIso();
         const existing = bridges.get(environment.environmentId);
         if (existing) {
           failConnection(existing, "Local bridge reconnected before the request completed.");

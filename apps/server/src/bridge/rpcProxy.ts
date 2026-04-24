@@ -17,8 +17,10 @@ import {
   WS_METHODS,
   WsRpcGroup,
   type EnvironmentId,
+  type OrchestrationProjectShell,
   type OrchestrationShellStreamItem,
   type OrchestrationThreadShell,
+  type ProjectId,
   type ServerConfig,
   type ServerConfigStreamEvent,
   type ServerLifecycleStreamEvent,
@@ -165,6 +167,18 @@ function isThreadVisible(thread: OrchestrationThreadShell, connectedAt: string):
   );
 }
 
+function isProjectVisible(
+  project: OrchestrationProjectShell,
+  visibleProjectIds: ReadonlySet<ProjectId>,
+  connectedAt: string,
+): boolean {
+  return (
+    visibleProjectIds.has(project.id) ||
+    project.createdAt >= connectedAt ||
+    project.updatedAt >= connectedAt
+  );
+}
+
 function filterShellItem(
   item: OrchestrationShellStreamItem,
   connectedAt: string | null,
@@ -174,13 +188,26 @@ function filterShellItem(
   }
 
   if (item.kind === "snapshot") {
+    const threads = item.snapshot.threads.filter((thread) => isThreadVisible(thread, connectedAt));
+    const visibleProjectIds = new Set(threads.map((thread) => thread.projectId));
     return {
       kind: "snapshot",
       snapshot: {
         ...item.snapshot,
-        threads: item.snapshot.threads.filter((thread) => isThreadVisible(thread, connectedAt)),
+        projects: item.snapshot.projects.filter((project) =>
+          isProjectVisible(project, visibleProjectIds, connectedAt),
+        ),
+        threads,
       },
     };
+  }
+
+  if (
+    item.kind === "project-upserted" &&
+    item.project.createdAt < connectedAt &&
+    item.project.updatedAt < connectedAt
+  ) {
+    return null;
   }
 
   if (item.kind === "thread-upserted" && !isThreadVisible(item.thread, connectedAt)) {

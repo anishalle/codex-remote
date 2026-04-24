@@ -8,6 +8,7 @@ import { LocalBridgeRegistry } from "./LocalBridgeRegistry.ts";
 
 const BridgeRegisterInput = Schema.Struct({
   environment: ExecutionEnvironmentDescriptor,
+  startedAt: Schema.optional(Schema.String),
 });
 
 const BridgePollInput = Schema.Struct({

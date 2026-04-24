@@ -27,6 +27,10 @@ type T3rPaths = {
 
 type TokenValidationResult = "valid" | "invalid" | "unknown";
 
+interface BridgeTokenState {
+  readonly refreshed: boolean;
+}
+
 function resolveConfigDir(): string {
   const configured = process.env.T3R_CONFIG_DIR?.trim();
   if (configured) {
@@ -183,7 +187,7 @@ async function bootstrapBearerToken(remoteUrl: string, credential: string): Prom
   return result.sessionToken.trim();
 }
 
-async function ensureBridgeToken(remoteUrl: string, paths: T3rPaths): Promise<void> {
+async function ensureBridgeToken(remoteUrl: string, paths: T3rPaths): Promise<BridgeTokenState> {
   await fs.mkdir(paths.configDir, { recursive: true, mode: 0o700 });
   await fs.chmod(paths.configDir, 0o700).catch(() => undefined);
 
@@ -191,11 +195,11 @@ async function ensureBridgeToken(remoteUrl: string, paths: T3rPaths): Promise<vo
   if (savedToken) {
     const validation = await validateSavedToken(remoteUrl, savedToken);
     if (validation === "valid") {
-      return;
+      return { refreshed: false };
     }
     if (validation === "unknown") {
       console.warn("Could not validate saved t3r auth. Starting with the saved token.");
-      return;
+      return { refreshed: false };
     }
     console.log("Saved t3r auth is expired or revoked.");
   }
@@ -211,7 +215,7 @@ async function ensureBridgeToken(remoteUrl: string, paths: T3rPaths): Promise<vo
       const token = await bootstrapBearerToken(remoteUrl, credential);
       await writeSavedToken(paths.tokenPath, token);
       console.log(`Saved t3r auth to ${paths.tokenPath}`);
-      return;
+      return { refreshed: true };
     } catch (error) {
       console.error(error instanceof Error ? error.message : String(error));
     }
@@ -252,13 +256,37 @@ async function delay(ms: number): Promise<void> {
   await new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-async function startDaemon(paths: T3rPaths, remoteUrl: string): Promise<void> {
+async function terminateDaemonProcess(pid: number, pidPath: string): Promise<boolean> {
+  process.kill(pid, "SIGTERM");
+  for (let attempt = 0; attempt < 20; attempt += 1) {
+    await delay(100);
+    if (!isProcessAlive(pid)) {
+      await removePidFile(pidPath);
+      return true;
+    }
+  }
+  return false;
+}
+
+async function startDaemon(
+  paths: T3rPaths,
+  remoteUrl: string,
+  options: { readonly restartIfRunning?: boolean } = {},
+): Promise<void> {
   const existingPid = await readPid(paths.pidPath);
   if (existingPid && isProcessAlive(existingPid)) {
-    console.log(`t3r is already running (pid ${existingPid}).`);
-    return;
+    if (options.restartIfRunning) {
+      console.log(`Restarting t3r with refreshed auth (old pid ${existingPid}).`);
+      const stopped = await terminateDaemonProcess(existingPid, paths.pidPath);
+      if (!stopped) {
+        throw new Error(`t3r is still running (pid ${existingPid}). Run 't3r stop' and try again.`);
+      }
+    } else {
+      console.log(`t3r is already running (pid ${existingPid}).`);
+      return;
+    }
   }
-  if (existingPid) {
+  if (existingPid && !isProcessAlive(existingPid)) {
     await removePidFile(paths.pidPath);
   }
 
@@ -313,18 +341,12 @@ async function stopDaemon(paths: T3rPaths): Promise<void> {
     return;
   }
 
-  process.kill(pid, "SIGTERM");
-  for (let attempt = 0; attempt < 20; attempt += 1) {
-    await delay(100);
-    if (!isProcessAlive(pid)) {
-      await removePidFile(paths.pidPath);
-      console.log("t3r stopped.");
-      return;
-    }
+  if (await terminateDaemonProcess(pid, paths.pidPath)) {
+    console.log("t3r stopped.");
+  } else {
+    await removePidFile(paths.pidPath);
+    console.log("t3r stop requested. Process is still shutting down.");
   }
-
-  await removePidFile(paths.pidPath);
-  console.log("t3r stop requested. Process is still shutting down.");
 }
 
 function cleanupPidOnExit(paths: T3rPaths): void {
@@ -400,8 +422,8 @@ async function main(): Promise<void> {
   }
 
   const remoteUrl = resolveRemoteUrl();
-  await ensureBridgeToken(remoteUrl, paths);
-  await startDaemon(paths, remoteUrl);
+  const tokenState = await ensureBridgeToken(remoteUrl, paths);
+  await startDaemon(paths, remoteUrl, { restartIfRunning: tokenState.refreshed });
 }
 
 void main().catch((error) => {

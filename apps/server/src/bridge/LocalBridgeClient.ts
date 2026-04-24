@@ -15,6 +15,7 @@ interface LocalBridgeClientInput {
   readonly publicBearerToken: string;
   readonly localWsUrl: string;
   readonly environment: ExecutionEnvironmentDescriptor;
+  readonly startedAt: string;
 }
 
 interface BridgePollResponse {
@@ -230,6 +231,7 @@ async function runBridgeLoop(input: LocalBridgeClientInput): Promise<void> {
             ...input.environment,
             origin: "local",
           },
+          startedAt: input.startedAt,
         },
       });
 

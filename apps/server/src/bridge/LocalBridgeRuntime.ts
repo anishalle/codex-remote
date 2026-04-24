@@ -105,6 +105,7 @@ export const LocalBridgeClientLive = Layer.effectDiscard(
       publicBearerToken: bearerToken,
       localWsUrl: localWsUrl.toString(),
       environment,
+      startedAt: new Date().toISOString(),
     }).pipe(Effect.forkDetach);
   }),
 );
