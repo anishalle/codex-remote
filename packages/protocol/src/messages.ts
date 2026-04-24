@@ -86,6 +86,18 @@ export interface RunnerProjectCreatedPayload {
   readonly createdAt: string;
 }
 
+export interface RunnerProjectDeletePayload {
+  readonly commandId: string;
+  readonly projectId: string;
+  readonly requestedAt: string;
+}
+
+export interface RunnerProjectDeletedPayload {
+  readonly commandId: string;
+  readonly projectId: string;
+  readonly deletedAt: string;
+}
+
 export interface RunnerWorkspaceUnpackPayload {
   readonly commandId: string;
   readonly uploadId: string;
@@ -287,6 +299,7 @@ export type RunnerToServerMessage =
   | Envelope<"ping", PingPayload>
   | Envelope<"runner.hello", RunnerHelloPayload>
   | Envelope<"runner.project.created", RunnerProjectCreatedPayload>
+  | Envelope<"runner.project.deleted", RunnerProjectDeletedPayload>
   | Envelope<"runner.workspace.unpacked", RunnerWorkspaceUnpackedPayload>
   | Envelope<"runner.event.append", RunnerEventAppendPayload>
   | Envelope<"runner.command.ack", RunnerCommandAckPayload>
@@ -308,6 +321,7 @@ export type ServerToRunnerMessage =
   | Envelope<"runner.hello.ack", RunnerHelloAckPayload>
   | Envelope<"runner.event.ack", RunnerEventAckPayload>
   | Envelope<"runner.project.create", RunnerProjectCreatePayload>
+  | Envelope<"runner.project.delete", RunnerProjectDeletePayload>
   | Envelope<"runner.workspace.unpack", RunnerWorkspaceUnpackPayload>
   | Envelope<"runner.turn.start", RunnerTurnStartPayload>
   | Envelope<"runner.turn.steer", RunnerTurnSteerPayload>
@@ -378,6 +392,18 @@ const RunnerProjectCreatedPayloadSchema = objectSchema({
   projectId: nonEmptyStringSchema,
   name: nonEmptyStringSchema,
   createdAt: IsoStringSchema,
+});
+
+const RunnerProjectDeletePayloadSchema = objectSchema({
+  commandId: nonEmptyStringSchema,
+  projectId: nonEmptyStringSchema,
+  requestedAt: IsoStringSchema,
+});
+
+const RunnerProjectDeletedPayloadSchema = objectSchema({
+  commandId: nonEmptyStringSchema,
+  projectId: nonEmptyStringSchema,
+  deletedAt: IsoStringSchema,
 });
 
 const RunnerWorkspaceUnpackPayloadSchema = objectSchema({
@@ -620,6 +646,7 @@ export const RunnerToServerMessageSchema: Schema<RunnerToServerMessage> = unionS
   envelopeSchema("ping", PingPayloadSchema),
   envelopeSchema("runner.hello", RunnerHelloPayloadSchema),
   envelopeSchema("runner.project.created", RunnerProjectCreatedPayloadSchema),
+  envelopeSchema("runner.project.deleted", RunnerProjectDeletedPayloadSchema),
   envelopeSchema("runner.workspace.unpacked", RunnerWorkspaceUnpackedPayloadSchema),
   envelopeSchema("runner.event.append", RunnerEventAppendPayloadSchema),
   envelopeSchema("runner.command.ack", RunnerCommandAckPayloadSchema),
@@ -643,6 +670,7 @@ export const ServerMessageSchema: Schema<ServerMessage> = unionSchema([
   envelopeSchema("runner.hello.ack", RunnerHelloAckPayloadSchema),
   envelopeSchema("runner.event.ack", RunnerEventAckPayloadSchema),
   envelopeSchema("runner.project.create", RunnerProjectCreatePayloadSchema),
+  envelopeSchema("runner.project.delete", RunnerProjectDeletePayloadSchema),
   envelopeSchema("runner.workspace.unpack", RunnerWorkspaceUnpackPayloadSchema),
   envelopeSchema("runner.turn.start", RunnerTurnStartPayloadSchema),
   envelopeSchema("runner.turn.steer", RunnerTurnSteerPayloadSchema),

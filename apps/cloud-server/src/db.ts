@@ -116,6 +116,17 @@ export interface CreateRunnerCommandInput {
   readonly createdAt: string;
 }
 
+export interface RunnerCommandRow {
+  readonly commandId: string;
+  readonly runnerId: string;
+  readonly cloudThreadId: string;
+  readonly commandType: string;
+  readonly status: string;
+  readonly payload: unknown;
+  readonly createdAt: string;
+  readonly updatedAt: string;
+}
+
 export interface UpsertProjectInput {
   readonly projectId: string;
   readonly runnerId: string;
@@ -263,6 +274,19 @@ function toPendingApprovalSummary(row: any): PendingApprovalSummary {
     createdAt: row.created_at,
     ...(row.resolved_at ? { resolvedAt: row.resolved_at } : {}),
     ...(row.decision ? { decision: row.decision } : {}),
+  };
+}
+
+function toRunnerCommandRow(row: any): RunnerCommandRow {
+  return {
+    commandId: row.command_id,
+    runnerId: row.runner_id,
+    cloudThreadId: row.cloud_thread_id,
+    commandType: row.command_type,
+    status: row.status,
+    payload: parseJson(row.payload_json),
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
   };
 }
 
@@ -634,6 +658,13 @@ export class CloudDatabase {
     return rows.map(toProjectSummary);
   }
 
+  deleteProject(input: { readonly runnerId: string; readonly projectId: string }): boolean {
+    const result = this.raw
+      .prepare(`DELETE FROM projects WHERE runner_id = ? AND project_id = ?`)
+      .run(input.runnerId, input.projectId);
+    return result.changes > 0;
+  }
+
   appendEvent(input: AppendEventInput): CloudEvent {
     this.raw
       .prepare(
@@ -794,6 +825,13 @@ export class CloudDatabase {
          WHERE command_id = ?`,
       )
       .run(input.status, input.updatedAt, input.commandId);
+  }
+
+  getRunnerCommand(commandId: string): RunnerCommandRow | null {
+    const row = this.raw
+      .prepare(`SELECT * FROM runner_commands WHERE command_id = ?`)
+      .get(commandId);
+    return row ? toRunnerCommandRow(row) : null;
   }
 
   upsertPendingApproval(input: UpsertPendingApprovalInput): PendingApprovalSummary {

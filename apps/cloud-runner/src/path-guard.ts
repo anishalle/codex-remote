@@ -6,6 +6,7 @@ import {
   readdirSync,
   readFileSync,
   realpathSync,
+  rmSync,
   statSync,
   writeFileSync,
 } from "node:fs";
@@ -153,6 +154,19 @@ export function listCloudProjects(workspacesRoot = DEFAULT_WORKSPACES_ROOT): Clo
     }
   }
   return projects.sort((left, right) => left.projectId.localeCompare(right.projectId));
+}
+
+export function deleteCloudProject(input: {
+  readonly workspacesRoot?: string;
+  readonly projectId: string;
+}): void {
+  const projectId = validateProjectId(input.projectId);
+  const path = resolveCloudProjectPath({
+    workspacesRoot: input.workspacesRoot,
+    projectId,
+    mustExist: true,
+  });
+  rmSync(path, { recursive: true, force: false });
 }
 
 function writeProjectManifest(project: CloudProject): void {

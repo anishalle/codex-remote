@@ -14,7 +14,9 @@ import {
   type ApprovalDecision,
   type CloudEvent,
   type PendingApprovalSummary,
+  type RunnerCommandAckPayload,
   type RunnerProjectCreatePayload,
+  type RunnerProjectDeletePayload,
   type RunnerApprovalResolvePayload,
   type RunnerWorkspaceUnpackPayload,
   type RunnerTurnInterruptPayload,
@@ -31,6 +33,7 @@ import {
 } from "../../../packages/workspace-packager/src/index.ts";
 import type { AuthenticatedSession } from "./auth.ts";
 import { AuthError, AuthService } from "./auth.ts";
+import { buildAppSnapshot, buildAppThreadDetail } from "./app-projection.ts";
 import type { CloudServerConfig } from "./config.ts";
 import { CloudDatabase } from "./db.ts";
 import { WebSocketConnection, authenticateWebSocketUpgrade, acceptWebSocket } from "./websocket.ts";
@@ -41,6 +44,7 @@ const MOBILE_WEB_ROOT = resolve(
   dirname(fileURLToPath(import.meta.url)),
   "../../mobile-web/public",
 );
+const WEB_DIST_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "../../web/dist");
 
 export interface CloudServer {
   readonly server: ReturnType<typeof createServer>;
@@ -70,12 +74,7 @@ function sendError(res: ServerResponse, status: number, code: string, message: s
 }
 
 function sendStatic(res: ServerResponse, filePath: string): void {
-  const contentType =
-    extname(filePath) === ".js"
-      ? "text/javascript; charset=utf-8"
-      : extname(filePath) === ".css"
-        ? "text/css; charset=utf-8"
-        : "text/html; charset=utf-8";
+  const contentType = contentTypeForPath(filePath);
   const body = readFileSync(filePath);
   res.writeHead(200, {
     "content-type": contentType,
@@ -83,6 +82,26 @@ function sendStatic(res: ServerResponse, filePath: string): void {
     "cache-control": filePath.endsWith("index.html") ? "no-store" : "public, max-age=60",
   });
   res.end(body);
+}
+
+function contentTypeForPath(filePath: string): string {
+  switch (extname(filePath)) {
+    case ".js":
+      return "text/javascript; charset=utf-8";
+    case ".css":
+      return "text/css; charset=utf-8";
+    case ".svg":
+      return "image/svg+xml";
+    case ".png":
+      return "image/png";
+    case ".ico":
+      return "image/x-icon";
+    case ".json":
+      return "application/json; charset=utf-8";
+    case ".html":
+    default:
+      return "text/html; charset=utf-8";
+  }
 }
 
 function sendBytes(res: ServerResponse, filePath: string): void {
@@ -205,6 +224,14 @@ function isMobileWebPath(pathname: string): boolean {
   );
 }
 
+function isWebAppRequest(pathname: string): boolean {
+  return (
+    !pathname.startsWith("/api/") &&
+    !pathname.startsWith("/ws/") &&
+    pathname !== "/healthz"
+  );
+}
+
 function resolveMobileWebPath(pathname: string): string | null {
   const relative = pathname === "/" ? "index.html" : pathname.slice(1);
   const filePath = resolve(join(MOBILE_WEB_ROOT, relative));
@@ -212,6 +239,22 @@ function resolveMobileWebPath(pathname: string): string | null {
     return null;
   }
   return statSync(filePath).isFile() ? filePath : null;
+}
+
+function resolveWebAppPath(pathname: string): string | null {
+  if (existsSync(WEB_DIST_ROOT)) {
+    const relative = pathname === "/" ? "index.html" : pathname.slice(1);
+    const filePath = resolve(join(WEB_DIST_ROOT, relative));
+    if (filePath.startsWith(WEB_DIST_ROOT) && existsSync(filePath) && statSync(filePath).isFile()) {
+      return filePath;
+    }
+    const fallback = resolve(join(WEB_DIST_ROOT, "index.html"));
+    return existsSync(fallback) && statSync(fallback).isFile() ? fallback : null;
+  }
+  if (isMobileWebPath(pathname)) {
+    return resolveMobileWebPath(pathname);
+  }
+  return resolveMobileWebPath("/");
 }
 
 function parseThreadActionPath(
@@ -235,6 +278,17 @@ function parseApprovalActionPath(
   return {
     approvalId: decodeURIComponent(parts[2]),
     action: "resolve",
+  };
+}
+
+function parseCloudProjectActionPath(
+  pathname: string,
+): { readonly runnerId: string; readonly projectId: string } | null {
+  const parts = pathname.split("/").filter(Boolean);
+  if (parts.length !== 4 || parts[0] !== "api" || parts[1] !== "cloud-projects") return null;
+  return {
+    runnerId: decodeURIComponent(parts[2]),
+    projectId: decodeURIComponent(parts[3]),
   };
 }
 
@@ -277,6 +331,121 @@ class WsConnectionRegistry {
   }
 }
 
+function asOptionalRecord(value: unknown): Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value)
+    ? (value as Record<string, unknown>)
+    : {};
+}
+
+function clearPendingApproval(input: {
+  readonly db: CloudDatabase;
+  readonly registry: WsConnectionRegistry;
+  readonly approvalId: string;
+  readonly decision: ApprovalDecision;
+  readonly resolvedAt: string;
+}): PendingApprovalSummary | null {
+  const approval = input.db.getApproval(input.approvalId);
+  if (!approval || approval.status !== "pending") return approval;
+  const resolved = input.db.resolvePendingApproval({
+    approvalId: input.approvalId,
+    status: "resolved",
+    decision: input.decision,
+    resolvedAt: input.resolvedAt,
+  });
+  if (resolved) {
+    input.registry.broadcastToClients(createEnvelope("approval.updated", { approval: resolved }));
+  }
+  return resolved;
+}
+
+function clearPendingApprovalsForThread(input: {
+  readonly db: CloudDatabase;
+  readonly registry: WsConnectionRegistry;
+  readonly cloudThreadId: string;
+  readonly decision: ApprovalDecision;
+  readonly resolvedAt: string;
+}): number {
+  let cleared = 0;
+  for (const approval of input.db.listApprovals({
+    threadId: input.cloudThreadId,
+    status: "pending",
+  })) {
+    if (
+      clearPendingApproval({
+        db: input.db,
+        registry: input.registry,
+        approvalId: approval.approvalId,
+        decision: input.decision,
+        resolvedAt: input.resolvedAt,
+      })
+    ) {
+      cleared += 1;
+    }
+  }
+  return cleared;
+}
+
+function applyRunnerCommandAckSideEffects(input: {
+  readonly db: CloudDatabase;
+  readonly registry: WsConnectionRegistry;
+  readonly ack: RunnerCommandAckPayload;
+  readonly receivedAt: string;
+}): void {
+  const command = input.db.getRunnerCommand(input.ack.commandId);
+  if (!command) return;
+
+  if (command.commandType === "approval.resolve" && !input.ack.accepted) {
+    const message = input.ack.message ?? "";
+    if (!message.includes("Unknown pending approval")) return;
+    const payload = asOptionalRecord(command.payload);
+    const approvalId = typeof payload.approvalId === "string" ? payload.approvalId : "";
+    if (!approvalId) return;
+    clearPendingApproval({
+      db: input.db,
+      registry: input.registry,
+      approvalId,
+      decision: "cancel",
+      resolvedAt: input.receivedAt,
+    });
+    input.db.appendAudit({
+      actorKind: "system",
+      action: "approval.stale_cleared",
+      targetKind: "approval",
+      targetId: approvalId,
+      ok: true,
+      detail: {
+        commandId: input.ack.commandId,
+        attemptedDecision: payload.decision ?? null,
+        runnerMessage: message,
+      },
+    });
+    return;
+  }
+
+  if (command.commandType === "turn.interrupt" && input.ack.accepted) {
+    const cleared = clearPendingApprovalsForThread({
+      db: input.db,
+      registry: input.registry,
+      cloudThreadId: command.cloudThreadId,
+      decision: "cancel",
+      resolvedAt: input.receivedAt,
+    });
+    if (cleared > 0) {
+      input.db.appendAudit({
+        actorKind: "system",
+        action: "turn.interrupt.approvals_cancelled",
+        targetKind: "thread",
+        targetId: command.cloudThreadId,
+        ok: true,
+        detail: {
+          commandId: input.ack.commandId,
+          cleared,
+        },
+      });
+    }
+  }
+}
+
 function handleHttpRequest(input: {
   readonly req: IncomingMessage;
   readonly res: ServerResponse;
@@ -294,8 +463,8 @@ function handleHttpRequest(input: {
         return;
       }
 
-      if (req.method === "GET" && isMobileWebPath(url.pathname)) {
-        const filePath = resolveMobileWebPath(url.pathname);
+      if (req.method === "GET" && isWebAppRequest(url.pathname)) {
+        const filePath = resolveWebAppPath(url.pathname);
         if (filePath) {
           sendStatic(res, filePath);
           return;
@@ -305,6 +474,19 @@ function handleHttpRequest(input: {
       if (req.method === "GET" && url.pathname === "/api/session") {
         const session = auth.authenticateRequest(req);
         sendJson(res, 200, toSessionJson(session));
+        return;
+      }
+
+      if (req.method === "GET" && url.pathname === "/api/app/snapshot") {
+        const session = auth.authenticateRequest(req);
+        sendJson(res, 200, buildAppSnapshot({ db, session }));
+        return;
+      }
+
+      if (req.method === "GET" && url.pathname.startsWith("/api/app/threads/")) {
+        auth.authenticateRequest(req);
+        const cloudThreadId = decodeURIComponent(url.pathname.slice("/api/app/threads/".length));
+        sendJson(res, 200, buildAppThreadDetail({ db, cloudThreadId }));
         return;
       }
 
@@ -367,6 +549,22 @@ function handleHttpRequest(input: {
         });
         sendJson(res, 202, result);
         return;
+      }
+
+      if (req.method === "DELETE" && url.pathname.startsWith("/api/cloud-projects/")) {
+        const session = auth.authenticateRequest(req);
+        const action = parseCloudProjectActionPath(url.pathname);
+        if (action) {
+          const result = deleteCloudProjectFromClient({
+            db,
+            registry,
+            actorDeviceId: session.deviceId,
+            runnerId: action.runnerId,
+            projectId: parseCloudProjectId(action.projectId),
+          });
+          sendJson(res, 202, result);
+          return;
+        }
       }
 
       if (req.method === "POST" && url.pathname === "/api/uploads/init") {
@@ -636,6 +834,36 @@ function handleRunnerMessage(input: {
       });
       return;
     }
+    case "runner.project.deleted": {
+      const runnerId = input.registry.runnerIds.get(input.connection);
+      if (!runnerId) {
+        input.connection.sendJson(
+          createErrorEnvelope({
+            code: "runner_not_registered",
+            message: "Send runner.hello before deleting projects.",
+            requestId: message.id,
+          }),
+        );
+        return;
+      }
+      input.db.deleteProject({
+        runnerId,
+        projectId: message.payload.projectId,
+      });
+      input.db.appendAudit({
+        actorKind: "device",
+        actorDeviceId: input.session.deviceId,
+        action: "cloud_project.deleted",
+        targetKind: "project",
+        targetId: message.payload.projectId,
+        ok: true,
+        detail: {
+          runnerId,
+          commandId: message.payload.commandId,
+        },
+      });
+      return;
+    }
     case "runner.workspace.unpacked": {
       const runnerId = input.registry.runnerIds.get(input.connection);
       if (!runnerId) {
@@ -688,10 +916,17 @@ function handleRunnerMessage(input: {
       return;
     }
     case "runner.command.ack": {
+      const receivedAt = nowIso();
       input.db.updateRunnerCommandStatus({
         commandId: message.payload.commandId,
         status: message.payload.accepted ? "accepted" : "rejected",
-        updatedAt: nowIso(),
+        updatedAt: receivedAt,
+      });
+      applyRunnerCommandAckSideEffects({
+        db: input.db,
+        registry: input.registry,
+        ack: message.payload,
+        receivedAt,
       });
       input.db.appendAudit({
         actorKind: "device",
@@ -944,6 +1179,16 @@ function startTurnFromClient(input: {
     prompt: input.payload.prompt,
     requestedAt: now,
   };
+  appendClientPromptEvent({
+    db: input.db,
+    registry: input.registry,
+    runnerId: input.payload.runnerId,
+    projectId: input.payload.projectId,
+    cloudThreadId,
+    commandId,
+    prompt: input.payload.prompt,
+    occurredAt: now,
+  });
   input.db.createRunnerCommand({
     commandId,
     runnerId: input.payload.runnerId,
@@ -1206,6 +1451,90 @@ function createCloudProjectFromClient(input: {
   };
 }
 
+function deleteCloudProjectFromClient(input: {
+  readonly db: CloudDatabase;
+  readonly registry: WsConnectionRegistry;
+  readonly actorDeviceId: string;
+  readonly runnerId: string;
+  readonly projectId: string;
+}): {
+  readonly commandId: string;
+  readonly runnerId: string;
+  readonly projectId: string;
+  readonly status: "sent";
+} {
+  if (!input.registry.runnerConnections.has(input.runnerId)) {
+    throw new AuthError("runner_unavailable", "Runner is not connected.", 409);
+  }
+  const exists = input.db
+    .listProjects({ runnerId: input.runnerId })
+    .some((project) => project.projectId === input.projectId);
+  if (!exists) {
+    throw new AuthError("project_not_found", "Project not found.", 404);
+  }
+  const now = nowIso();
+  const commandId = `cmd_${randomUUID()}`;
+  const payload: RunnerProjectDeletePayload = {
+    commandId,
+    projectId: input.projectId,
+    requestedAt: now,
+  };
+  input.db.appendAudit({
+    actorKind: "device",
+    actorDeviceId: input.actorDeviceId,
+    action: "cloud_project.delete.forwarded",
+    targetKind: "project",
+    targetId: input.projectId,
+    ok: true,
+    detail: {
+      runnerId: input.runnerId,
+      commandId,
+    },
+  });
+  if (!input.registry.sendToRunner(input.runnerId, createEnvelope("runner.project.delete", payload))) {
+    throw new AuthError("runner_unavailable", "Runner disconnected before command dispatch.", 409);
+  }
+  return {
+    commandId,
+    runnerId: input.runnerId,
+    projectId: input.projectId,
+    status: "sent",
+  };
+}
+
+function appendClientPromptEvent(input: {
+  readonly db: CloudDatabase;
+  readonly registry: WsConnectionRegistry;
+  readonly runnerId: string;
+  readonly projectId: string;
+  readonly cloudThreadId: string;
+  readonly commandId: string;
+  readonly prompt: string;
+  readonly occurredAt: string;
+}): void {
+  const event = input.db.appendEvent({
+    eventId: `client_${randomUUID()}`,
+    runnerId: input.runnerId,
+    projectId: input.projectId,
+    threadId: input.cloudThreadId,
+    type: "client.prompt.submitted",
+    payload: {
+      text: input.prompt,
+      promptLength: input.prompt.length,
+      commandId: input.commandId,
+      source: "web",
+    },
+    occurredAt: input.occurredAt,
+    receivedAt: nowIso(),
+  });
+  input.db.updateThreadLastEvent({
+    cloudThreadId: input.cloudThreadId,
+    sequence: event.sequence,
+    updatedAt: event.receivedAt,
+  });
+  input.registry.broadcastToClients(createEnvelope("event.appended", { event }));
+}
+
 function steerThreadFromClient(input: {
   readonly db: CloudDatabase;
   readonly registry: WsConnectionRegistry;
@@ -1225,6 +1554,16 @@ function steerThreadFromClient(input: {
     prompt: input.prompt,
     requestedAt: now,
   };
+  appendClientPromptEvent({
+    db: input.db,
+    registry: input.registry,
+    runnerId: thread.runnerId,
+    projectId: thread.projectId,
+    cloudThreadId: input.cloudThreadId,
+    commandId,
+    prompt: input.prompt,
+    occurredAt: now,
+  });
   input.db.createRunnerCommand({
     commandId,
     runnerId: thread.runnerId,

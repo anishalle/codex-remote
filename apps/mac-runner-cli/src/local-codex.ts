@@ -460,9 +460,11 @@ export class CodexRuntimeBridge implements LocalRuntimeBridge {
 
   async interruptTurn(cloudThreadId: string): Promise<void> {
     const session = this.sessions.get(cloudThreadId);
-    if (!session?.providerThreadId || !session.activeTurnId) {
+    if (!session) {
       return;
     }
+    this.resolveAllPendingApprovals(session, "cancel");
+    if (!session.providerThreadId || !session.activeTurnId) return;
     await session.process.request("turn/interrupt", {
       threadId: session.providerThreadId,
       turnId: session.activeTurnId,
@@ -481,6 +483,13 @@ export class CodexRuntimeBridge implements LocalRuntimeBridge {
     }
     session.pendingApprovals.delete(approvalId);
     resolve(decision);
+  }
+
+  private resolveAllPendingApprovals(session: RuntimeSession, decision: ApprovalDecision): void {
+    for (const [approvalId, resolve] of session.pendingApprovals.entries()) {
+      session.pendingApprovals.delete(approvalId);
+      resolve(decision);
+    }
   }
 
   async close(): Promise<void> {

@@ -325,6 +325,15 @@ function sha256(buffer: Buffer): string {
   return createHash("sha256").update(buffer).digest("hex");
 }
 
+async function waitFor(assertion: () => boolean, timeoutMs = 2000): Promise<void> {
+  const startedAt = Date.now();
+  while (Date.now() - startedAt < timeoutMs) {
+    if (assertion()) return;
+    await new Promise((resolve) => setTimeout(resolve, 20));
+  }
+  assert.equal(assertion(), true);
+}
+
 function makeHandoffPackage(t: test.TestContext): {
   readonly raw: Buffer;
   readonly manifest: unknown;
@@ -522,6 +531,147 @@ test("runner WebSocket appends mocked events and client WebSocket lists them", {
   }
 });
 
+test("app projection renders prompts and Codex lifecycle events as UI models", { timeout: 5000 }, async () => {
+  const { baseUrl } = await startServer();
+  const runnerSession = await pairDevice(baseUrl, "runner");
+  const clientSession = await pairDevice(baseUrl, "client");
+  let runner: RawWebSocket | null = null;
+
+  try {
+    runner = await connectWebSocket({
+      baseUrl,
+      path: "/ws/runner",
+      token: runnerSession.sessionToken,
+    });
+
+    runner.sendJson(
+      testEnvelope("runner.hello", {
+        runnerId: "runner-1",
+        name: "mock runner",
+        version: "test",
+        capabilities: ["codex-app-server-stdio"],
+        projects: [{ projectId: "project-1", name: "project-1" }],
+      }),
+    );
+    const helloAck = await runner.readJson();
+    assert.equal(helloAck.type, "runner.hello.ack");
+
+    const startResponse = await postJson(
+      baseUrl,
+      "/api/turns/start",
+      {
+        runnerId: "runner-1",
+        projectId: "project-1",
+        prompt: "Show me clean UI",
+      },
+      { authorization: `Bearer ${clientSession.sessionToken}` },
+    );
+    assert.equal(startResponse.status, 202);
+    const started = await readJson(startResponse);
+    assert.match(started.cloudThreadId, /^thread_/);
+
+    const startCommand = await runner.readJson();
+    assert.equal(startCommand.type, "runner.turn.start");
+
+    for (const event of [
+      {
+        eventId: "codex-lifecycle",
+        payload: {
+          method: "mcpServer/startupStatus/updated",
+          params: { status: "ready" },
+          providerThreadId: "provider-1",
+        },
+      },
+      {
+        eventId: "codex-delta-1",
+        payload: {
+          method: "item/agentMessage/delta",
+          params: { itemId: "agent-1", delta: "can" },
+          providerThreadId: "provider-1",
+        },
+      },
+      {
+        eventId: "codex-delta-2",
+        payload: {
+          method: "item/agentMessage/delta",
+          params: { itemId: "agent-1", delta: " continue" },
+          providerThreadId: "provider-1",
+        },
+      },
+      {
+        eventId: "codex-command-started",
+        payload: {
+          method: "item/started",
+          params: {
+            item: {
+              id: "cmd-1",
+              type: "commandExecution",
+              command: "find /workspaces/project-1 -name package.json",
+              status: "running",
+            },
+          },
+          providerThreadId: "provider-1",
+        },
+      },
+      {
+        eventId: "codex-command-completed",
+        payload: {
+          method: "item/completed",
+          params: {
+            item: {
+              id: "cmd-1",
+              type: "commandExecution",
+              command: "find /workspaces/project-1 -name package.json",
+              status: "completed",
+              aggregatedOutput: "/workspaces/project-1/package.json\n",
+            },
+          },
+          providerThreadId: "provider-1",
+        },
+      },
+    ]) {
+      runner.sendJson(
+        testEnvelope("runner.event.append", {
+          eventId: event.eventId,
+          projectId: "project-1",
+          threadId: started.cloudThreadId,
+          type: "codex.notification",
+          payload: event.payload,
+          occurredAt: new Date().toISOString(),
+        }),
+      );
+      assert.equal((await runner.readJson()).type, "runner.event.ack");
+    }
+
+    const detailResponse = await fetch(
+      `${baseUrl}/api/app/threads/${encodeURIComponent(started.cloudThreadId)}`,
+      { headers: { authorization: `Bearer ${clientSession.sessionToken}` } },
+    );
+    assert.equal(detailResponse.status, 200);
+    const detail = await readJson(detailResponse);
+    assert.equal(detail.thread.title, "Show me clean UI");
+    assert.equal(detail.messages.length, 2);
+    assert.equal(detail.messages[0].role, "user");
+    assert.equal(detail.messages[0].text, "Show me clean UI");
+    assert.equal(detail.messages[1].role, "assistant");
+    assert.equal(detail.messages[1].text, "can continue");
+    assert.equal(detail.activities.length, 1);
+    assert.equal(detail.activities[0].label, "Command completed");
+    assert.match(detail.activities[0].detail, /find \/workspaces\/project-1/);
+    assert.equal(detail.rawEventCount, 6);
+
+    const snapshotResponse = await fetch(`${baseUrl}/api/app/snapshot`, {
+      headers: { authorization: `Bearer ${clientSession.sessionToken}` },
+    });
+    assert.equal(snapshotResponse.status, 200);
+    const snapshot = await readJson(snapshotResponse);
+    assert.equal(snapshot.threads[0].title, "Show me clean UI");
+    assert.equal(snapshot.approvals.length, 0);
+  } finally {
+    runner?.close();
+  }
+});
+
 test("cloud project creation is forwarded to the connected runner", { timeout: 5000 }, async () => {
   const { baseUrl } = await startServer();
   const runnerSession = await pairDevice(baseUrl, "runner");
@@ -574,6 +724,139 @@ test("cloud project creation is forwarded to the connected runner", { timeout: 5
     const projects = await readJson(projectsResponse);
     assert.equal(projects.projects.length, 1);
     assert.equal(projects.projects[0].projectId, "cloud-repo");
+  } finally {
+    runner?.close();
+  }
+});
+
+test("cloud project deletion is forwarded to the connected runner", { timeout: 5000 }, async () => {
+  const { server, baseUrl } = await startServer();
+  const runnerSession = await pairDevice(baseUrl, "runner");
+  const clientSession = await pairDevice(baseUrl, "client");
+  let runner: RawWebSocket | null = null;
+
+  try {
+    runner = await connectWebSocket({
+      baseUrl,
+      path: "/ws/runner",
+      token: runnerSession.sessionToken,
+    });
+    runner.sendJson(
+      testEnvelope("runner.hello", {
+        runnerId: "cloud-runner-delete",
+        name: "cloud runner",
+        version: "test",
+        capabilities: ["cloud-project-delete"],
+        projects: [{ projectId: "delete-me", name: "delete-me" }],
+      }),
+    );
+    assert.equal((await runner.readJson()).type, "runner.hello.ack");
+    assert.equal(server.db.listProjects({ runnerId: "cloud-runner-delete" }).length, 1);
+
+    const deleteResponse = await fetch(
+      `${baseUrl}/api/cloud-projects/cloud-runner-delete/delete-me`,
+      {
+        method: "DELETE",
+        headers: { authorization: `Bearer ${clientSession.sessionToken}` },
+      },
+    );
+    assert.equal(deleteResponse.status, 202);
+    const forwarded = await runner.readJson();
+    assert.equal(forwarded.type, "runner.project.delete");
+    assert.equal(forwarded.payload.projectId, "delete-me");
+
+    runner.sendJson(
+      testEnvelope("runner.command.ack", {
+        commandId: forwarded.payload.commandId,
+        accepted: true,
+      }),
+    );
+    runner.sendJson(
+      testEnvelope("runner.project.deleted", {
+        commandId: forwarded.payload.commandId,
+        projectId: "delete-me",
+        deletedAt: new Date().toISOString(),
+      }),
+    );
+
+    await waitFor(() => server.db.listProjects({ runnerId: "cloud-runner-delete" }).length === 0);
+  } finally {
+    runner?.close();
+  }
+});
+
+test("stale approval rejects clear the pending approval instead of leaving the UI stuck", { timeout: 5000 }, async () => {
+  const { server, baseUrl } = await startServer();
+  const runnerSession = await pairDevice(baseUrl, "runner");
+  const clientSession = await pairDevice(baseUrl, "client");
+  let runner: RawWebSocket | null = null;
+
+  try {
+    runner = await connectWebSocket({
+      baseUrl,
+      path: "/ws/runner",
+      token: runnerSession.sessionToken,
+    });
+    runner.sendJson(
+      testEnvelope("runner.hello", {
+        runnerId: "approval-runner",
+        name: "approval runner",
+        version: "test",
+        capabilities: ["codex-app-server-stdio"],
+        projects: [{ projectId: "project-1", name: "project-1" }],
+      }),
+    );
+    assert.equal((await runner.readJson()).type, "runner.hello.ack");
+
+    const startResponse = await postJson(
+      baseUrl,
+      "/api/turns/start",
+      {
+        runnerId: "approval-runner",
+        projectId: "project-1",
+        prompt: "needs approval",
+      },
+      { authorization: `Bearer ${clientSession.sessionToken}` },
+    );
+    assert.equal(startResponse.status, 202);
+    const started = await readJson(startResponse);
+    assert.equal((await runner.readJson()).type, "runner.turn.start");
+
+    runner.sendJson(
+      testEnvelope("runner.approval.opened", {
+        approvalId: "approval-stale",
+        cloudThreadId: started.cloudThreadId,
+        projectId: "project-1",
+        approvalType: "command",
+        payload: { command: "find /workspaces/project-1 -name package.json" },
+        createdAt: new Date().toISOString(),
+      }),
+    );
+    await waitFor(() => server.db.getApproval("approval-stale")?.status === "pending");
+
+    const resolveResponse = await postJson(
+      baseUrl,
+      "/api/approvals/approval-stale/resolve",
+      { decision: "accept" },
+      { authorization: `Bearer ${clientSession.sessionToken}` },
+    );
+    assert.equal(resolveResponse.status, 202);
+    const forwarded = await runner.readJson();
+    assert.equal(forwarded.type, "runner.approval.resolve");
+
+    runner.sendJson(
+      testEnvelope("runner.command.ack", {
+        commandId: forwarded.payload.commandId,
+        accepted: false,
+        cloudThreadId: started.cloudThreadId,
+        message: "Unknown pending approval approval-stale.",
+      }),
+    );
+
+    await waitFor(() => server.db.getApproval("approval-stale")?.status === "resolved");
+    const approval = server.db.getApproval("approval-stale");
+    assert.equal(approval?.decision, "cancel");
+    assert.equal(server.db.listApprovals({ status: "pending" }).length, 0);
   } finally {
     runner?.close();
   }

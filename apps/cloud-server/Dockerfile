@@ -1,3 +1,14 @@
+FROM node:25-bookworm-slim AS web-builder
+
+WORKDIR /app
+
+COPY package.json package-lock.json tsconfig.base.json ./
+COPY packages ./packages
+COPY apps/web ./apps/web
+
+RUN npm ci --ignore-scripts \
+  && npm run build:web
+
 FROM node:25-bookworm-slim
 
 RUN apt-get update \
@@ -13,6 +24,7 @@ COPY package.json tsconfig.base.json ./
 COPY packages ./packages
 COPY apps/cloud-server ./apps/cloud-server
 COPY apps/mobile-web ./apps/mobile-web
+COPY --from=web-builder /app/apps/web/dist ./apps/web/dist
 
 RUN mkdir -p /data \
   && chown -R cloudcodex:cloudcodex /data /app

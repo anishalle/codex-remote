@@ -7,6 +7,7 @@ import {
   type ApprovalDecision,
   type RunnerEventAppendPayload,
   type RunnerProjectCreatePayload,
+  type RunnerProjectDeletePayload,
   type RunnerThreadStatusPayload,
   type RunnerWorkspaceUnpackPayload,
   type RunnerTurnInterruptPayload,
@@ -61,6 +62,9 @@ export interface RunnerProjectManager {
     readonly projectId: string;
     readonly name?: string;
   }) => Promise<ProjectConfig>;
+  readonly deleteProject?: (input: {
+    readonly projectId: string;
+  }) => Promise<void>;
   readonly unpackWorkspace?: (input: {
     readonly uploadId: string;
     readonly projectId: string;
@@ -329,6 +333,10 @@ export class MacRunnerDaemon {
             void this.handleProjectCreateCommand({ socket, command: message.payload });
             return;
           }
+          if (message.type === "runner.project.delete") {
+            void this.handleProjectDeleteCommand({ socket, command: message.payload });
+            return;
+          }
           if (message.type === "runner.workspace.unpack") {
             void this.handleWorkspaceUnpackCommand({ socket, command: message.payload });
             return;
@@ -347,6 +355,7 @@ export class MacRunnerDaemon {
               "queue-backfill",
               "thread-status",
               ...(this.options.projectManager ? ["cloud-project-create"] : []),
+              ...(this.options.projectManager?.deleteProject ? ["cloud-project-delete"] : []),
               ...(this.options.projectManager?.unpackWorkspace ? ["cloud-workspace-unpack"] : []),
             ],
             projects: projectDescriptors(this.config),
@@ -402,6 +411,50 @@ export class MacRunnerDaemon {
         false,
         undefined,
         error instanceof Error ? error.message : "Failed to create cloud project.",
+      );
+    }
+  }
+
+  private async handleProjectDeleteCommand(input: {
+    readonly socket: OutboundWebSocket;
+    readonly command: RunnerProjectDeletePayload;
+  }): Promise<void> {
+    const deleteProject = this.options.projectManager?.deleteProject;
+    if (!deleteProject) {
+      sendCommandAck(
+        input.socket,
+        input.command.commandId,
+        false,
+        undefined,
+        "Runner cannot delete cloud projects.",
+      );
+      return;
+    }
+    try {
+      await deleteProject({
+        projectId: input.command.projectId,
+      });
+      const nextProjects = { ...this.config.projects };
+      delete nextProjects[input.command.projectId];
+      this.config = {
+        ...this.config,
+        projects: nextProjects,
+      };
+      sendCommandAck(input.socket, input.command.commandId, true);
+      input.socket.sendJson(
+        createEnvelope("runner.project.deleted", {
+          commandId: input.command.commandId,
+          projectId: input.command.projectId,
+          deletedAt: new Date().toISOString(),
+        }),
+      );
+    } catch (error) {
+      sendCommandAck(
+        input.socket,
+        input.command.commandId,
+        false,
+        undefined,
+        error instanceof Error ? error.message : "Failed to delete cloud project.",
       );
     }
   }

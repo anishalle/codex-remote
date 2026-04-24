@@ -7,6 +7,9 @@
     "packages/*"
   ],
   "scripts": {
+    "dev:web": "npm run dev --workspace @codex-remote/web",
+    "build:web": "npm run build --workspace @codex-remote/web",
+    "typecheck:web": "npm run typecheck --workspace @codex-remote/web",
     "start:cloud-server": "node apps/cloud-server/src/index.ts",
     "start:mac-runner": "node apps/mac-runner-cli/src/index.ts",
     "start:cloud-runner": "node apps/cloud-runner/src/index.ts daemon",

@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { mkdtempSync, realpathSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
+import { existsSync, mkdtempSync, realpathSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
@@ -8,6 +8,7 @@ import {
   WorkspaceBoundaryError,
   assertPathInsideProject,
   createCloudProject,
+  deleteCloudProject,
   listCloudProjects,
   resolveCloudProjectPath,
   validateProjectId,
@@ -33,6 +34,16 @@ test("cloud projects are direct children of the workspaces root", (t) => {
     listCloudProjects(root).map((entry) => entry.projectId),
     ["repo-one"],
   );
+});
+
+test("cloud projects can be deleted within the workspaces root", (t) => {
+  const root = tempRoot(t);
+  const project = createCloudProject({ workspacesRoot: root, projectId: "repo-delete" });
+
+  deleteCloudProject({ workspacesRoot: root, projectId: "repo-delete" });
+
+  assert.equal(existsSync(project.path), false);
+  assert.deepEqual(listCloudProjects(root), []);
 });
 
 test("project ids reject traversal and path separators", () => {

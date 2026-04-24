@@ -1,4 +1,4 @@
-import { createCloudProject, listCloudProjects } from "./path-guard.ts";
+import { createCloudProject, deleteCloudProject, listCloudProjects } from "./path-guard.ts";
 import {
   ensureCloudRunnerHome,
   loadCloudRunnerConfig,
@@ -94,6 +94,12 @@ async function runDaemon(env: NodeJS.ProcessEnv, io: CliIo): Promise<void> {
               addedAt: project.addedAt,
             };
           },
+          deleteProject: async (request) => {
+            deleteCloudProject({
+              workspacesRoot: config.workspacesRoot,
+              projectId: request.projectId,
+            });
+          },
           unpackWorkspace: async (request) =>
             unpackHandoffWorkspace({
               config,
@@ -157,7 +163,19 @@ function runProjectCommand(args: readonly string[], env: NodeJS.ProcessEnv, io: 
     }
     return 0;
   }
-  throw new Error("Usage: cloudcodex-cloud-runner project <create|list>");
+  if (subcommand === "delete") {
+    const projectId = args[1];
+    if (!projectId) {
+      throw new Error("Usage: cloudcodex-cloud-runner project delete <project-id>");
+    }
+    deleteCloudProject({
+      workspacesRoot: config.workspacesRoot,
+      projectId,
+    });
+    io.stdout(`deleted\t${projectId}`);
+    return 0;
+  }
+  throw new Error("Usage: cloudcodex-cloud-runner project <create|delete|list>");
 }
 
 function readOption(args: readonly string[], name: string): string | undefined {
@@ -185,6 +203,7 @@ function usage(): string {
     "  cloudcodex-cloud-runner daemon",
     "  cloudcodex-cloud-runner pair <pairing-token> [--name <runner-name>]",
     "  cloudcodex-cloud-runner project create <project-id> [--name <name>]",
+    "  cloudcodex-cloud-runner project delete <project-id>",
     "  cloudcodex-cloud-runner project list",
   ].join("\n");
 }

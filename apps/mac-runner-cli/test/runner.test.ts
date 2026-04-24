@@ -285,12 +285,14 @@ test("cloud turn command reaches local runtime and streams ordered events back",
     const body = await response.json() as any;
     assert.match(body.cloudThreadId, /^thread_/);
 
-    await waitFor(() => cloudServer.db.listEvents({ threadId: body.cloudThreadId }).length === 2);
+    await waitFor(() => cloudServer.db.listEvents({ threadId: body.cloudThreadId }).length === 3);
     const events = cloudServer.db.listEvents({ threadId: body.cloudThreadId });
-    assert.equal(events[0].payload.localSequence, 1);
-    assert.equal(events[1].payload.localSequence, 2);
-    assert.equal(events[0].payload.data.method, "turn/started");
-    assert.equal(events[1].payload.data.method, "item/agentMessage/delta");
+    assert.equal(events[0].type, "client.prompt.submitted");
+    assert.equal((events[0].payload as any).text, "Use the real runtime bridge");
+    assert.equal(events[1].payload.localSequence, 1);
+    assert.equal(events[2].payload.localSequence, 2);
+    assert.equal(events[1].payload.data.method, "turn/started");
+    assert.equal(events[2].payload.data.method, "item/agentMessage/delta");
 
     const thread = cloudServer.db.getThread(body.cloudThreadId);
     assert.equal(thread?.status, "ready");
@@ -382,7 +384,9 @@ test("runner rejects cloud turn commands for unregistered projects before runtim
 
     await waitFor(() => cloudServer.db.getThread(body.cloudThreadId)?.status === "error");
     assert.equal(runtimeBridge.starts.length, 0);
-    assert.equal(cloudServer.db.listEvents({ threadId: body.cloudThreadId }).length, 0);
+    const events = cloudServer.db.listEvents({ threadId: body.cloudThreadId });
+    assert.equal(events.length, 1);
+    assert.equal(events[0].type, "client.prompt.submitted");
   } finally {
     controller.abort();
     await daemonRun;
