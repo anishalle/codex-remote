@@ -1,4 +1,4 @@
-import { DEFAULT_MODEL_BY_PROVIDER } from "@t3tools/contracts";
+import { DEFAULT_MODEL_BY_PROVIDER, MessageId } from "@t3tools/contracts";
 import { assert, describe, it } from "@effect/vitest";
 
 import {
@@ -31,6 +31,20 @@ describe("parseCodexCliSessionJsonl", () => {
           },
         }),
         JSON.stringify({
+          timestamp: "2026-04-24T07:01:30.000Z",
+          type: "response_item",
+          payload: {
+            type: "message",
+            role: "assistant",
+            content: [
+              {
+                type: "output_text",
+                text: "I will inspect the bridge importer.",
+              },
+            ],
+          },
+        }),
+        JSON.stringify({
           timestamp: "2026-04-24T07:02:00.000Z",
           type: "turn_context",
           payload: {
@@ -51,6 +65,22 @@ describe("parseCodexCliSessionJsonl", () => {
       },
       sessionStartedAt: "2026-04-24T07:00:00.000Z",
       updatedAt: "2026-04-24T08:00:00.000Z",
+      messages: [
+        {
+          messageId: MessageId.make("codex-cli:019dbe5a-242b-76b2-94bd-7e404b216fac:msg:1"),
+          role: "user",
+          text: "Fix the bridge visibility bug on phone",
+          createdAt: "2026-04-24T07:01:00.000Z",
+          updatedAt: "2026-04-24T07:01:00.000Z",
+        },
+        {
+          messageId: MessageId.make("codex-cli:019dbe5a-242b-76b2-94bd-7e404b216fac:msg:2"),
+          role: "assistant",
+          text: "I will inspect the bridge importer.",
+          createdAt: "2026-04-24T07:01:30.000Z",
+          updatedAt: "2026-04-24T07:01:30.000Z",
+        },
+      ],
     });
   });
 
@@ -72,5 +102,6 @@ describe("parseCodexCliSessionJsonl", () => {
     assert.equal(threadId, "codex-cli:session-a");
     assert.match(projectId, /^codex-cli-project:[a-f0-9]{16}$/);
     assert.equal(parsed?.modelSelection.model, DEFAULT_MODEL_BY_PROVIDER.codex);
+    assert.deepStrictEqual(parsed?.messages, []);
   });
 });

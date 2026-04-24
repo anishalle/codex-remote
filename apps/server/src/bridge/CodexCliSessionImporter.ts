@@ -2,6 +2,7 @@ import {
   CommandId,
   DEFAULT_MODEL_BY_PROVIDER,
   DEFAULT_PROVIDER_INTERACTION_MODE,
+  MessageId,
   ProjectId,
   ThreadId,
   type ModelSelection,
@@ -25,6 +26,14 @@ const CODEX_CLI_SCAN_INTERVAL = Duration.seconds(2);
 const STARTUP_LOOKBACK_MS = 60_000;
 const MAX_TITLE_LENGTH = 80;
 
+interface ImportedCodexCliMessage {
+  readonly messageId: MessageId;
+  readonly role: "user" | "assistant";
+  readonly text: string;
+  readonly createdAt: string;
+  readonly updatedAt: string;
+}
+
 interface ParsedCodexCliSession {
   readonly sessionId: string;
   readonly cwd: string;
@@ -32,6 +41,7 @@ interface ParsedCodexCliSession {
   readonly modelSelection: ModelSelection;
   readonly sessionStartedAt: string;
   readonly updatedAt: string;
+  readonly messages: ReadonlyArray<ImportedCodexCliMessage>;
 }
 
 interface CodexJsonlEnvelope {
@@ -76,6 +86,10 @@ function commandId(tag: string): CommandId {
   return CommandId.make(`${CODEX_CLI_COMMAND_ID_PREFIX}${tag}:${crypto.randomUUID()}`);
 }
 
+function codexCliMessageId(sessionId: string, sourceIndex: number): MessageId {
+  return MessageId.make(`${CODEX_CLI_THREAD_ID_PREFIX}${sessionId}:msg:${sourceIndex}`);
+}
+
 function parseEnvelope(line: string): CodexJsonlEnvelope | null {
   try {
     const parsed = JSON.parse(line) as unknown;
@@ -83,6 +97,29 @@ function parseEnvelope(line: string): CodexJsonlEnvelope | null {
   } catch {
     return null;
   }
+}
+
+function readEnvelopeTimestamp(envelope: CodexJsonlEnvelope, fallback: string): string {
+  return typeof envelope.timestamp === "string" && envelope.timestamp.trim().length > 0
+    ? envelope.timestamp.trim()
+    : fallback;
+}
+
+function readAssistantResponseText(payload: Record<string, unknown>): string | undefined {
+  const content = payload.content;
+  if (!Array.isArray(content)) {
+    return undefined;
+  }
+
+  const parts = content.flatMap((entry) => {
+    if (!isRecord(entry) || entry.type !== "output_text") {
+      return [];
+    }
+    const text = readString(entry, "text");
+    return text === undefined ? [] : [text];
+  });
+  const text = parts.join("\n").trim();
+  return text.length > 0 ? text : undefined;
 }
 
 export function parseCodexCliSessionJsonl(input: {
@@ -95,8 +132,9 @@ export function parseCodexCliSessionJsonl(input: {
   let cwd: string | undefined;
   let model: string | undefined;
   let firstUserMessage: string | undefined;
+  const messages: Array<Omit<ImportedCodexCliMessage, "messageId"> & { sourceIndex: number }> = [];
 
-  for (const line of input.contents.split("\n")) {
+  for (const [sourceIndex, line] of input.contents.split("\n").entries()) {
     const trimmed = line.trim();
     if (!trimmed) {
       continue;
@@ -124,6 +162,38 @@ export function parseCodexCliSessionJsonl(input: {
       if (envelope.payload.type === "user_message" && firstUserMessage === undefined) {
         firstUserMessage = readString(envelope.payload, "message");
       }
+      if (envelope.payload.type === "user_message") {
+        const text = readString(envelope.payload, "message");
+        if (text !== undefined) {
+          const createdAt = readEnvelopeTimestamp(envelope, input.updatedAt);
+          messages.push({
+            sourceIndex,
+            role: "user",
+            text,
+            createdAt,
+            updatedAt: createdAt,
+          });
+        }
+      }
+      continue;
+    }
+
+    if (
+      envelope.type === "response_item" &&
+      envelope.payload.type === "message" &&
+      envelope.payload.role === "assistant"
+    ) {
+      const text = readAssistantResponseText(envelope.payload);
+      if (text !== undefined) {
+        const createdAt = readEnvelopeTimestamp(envelope, input.updatedAt);
+        messages.push({
+          sourceIndex,
+          role: "assistant",
+          text,
+          createdAt,
+          updatedAt: createdAt,
+        });
+      }
     }
   }
 
@@ -141,6 +211,10 @@ export function parseCodexCliSessionJsonl(input: {
     },
     sessionStartedAt: sessionStartedAt ?? input.updatedAt,
     updatedAt: input.updatedAt,
+    messages: messages.map(({ sourceIndex, ...message }) => ({
+      ...message,
+      messageId: codexCliMessageId(sessionId, sourceIndex),
+    })),
   };
 }
 
@@ -246,6 +320,37 @@ const importSession = Effect.fn("importCodexCliSession")(function* (
       branch: null,
       worktreePath: null,
       createdAt: session.updatedAt,
+    });
+  }
+
+  const afterThreadReadModel = yield* orchestrationEngine.getReadModel();
+  const afterThread = afterThreadReadModel.threads.find((thread) => thread.id === threadId);
+  const existingMessages = new Map(afterThread?.messages.map((message) => [message.id, message]));
+  for (const message of session.messages) {
+    const existingMessage = existingMessages.get(message.messageId);
+    if (
+      existingMessage?.role === message.role &&
+      existingMessage.text === message.text &&
+      existingMessage.streaming === false &&
+      existingMessage.updatedAt === message.updatedAt
+    ) {
+      continue;
+    }
+
+    yield* orchestrationEngine.dispatch({
+      type: "thread.message.import",
+      commandId: commandId("message"),
+      threadId,
+      message: {
+        id: message.messageId,
+        role: message.role,
+        text: message.text,
+        turnId: null,
+        streaming: false,
+        createdAt: message.createdAt,
+        updatedAt: message.updatedAt,
+      },
+      createdAt: message.updatedAt,
     });
   }
 
