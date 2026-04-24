@@ -1,7 +1,7 @@
 FROM node:25-bookworm-slim
 
 RUN apt-get update \
-  && apt-get install -y --no-install-recommends ca-certificates tini \
+  && apt-get install -y --no-install-recommends ca-certificates git tini \
   && rm -rf /var/lib/apt/lists/*
 
 RUN groupadd --system --gid 10001 cloudcodex \
