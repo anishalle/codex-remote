@@ -7,7 +7,6 @@ import type { EnvironmentId, ExecutionEnvironmentDescriptor } from "@t3tools/con
 import { create } from "zustand";
 
 import { BootstrapHttpError, retryTransientBootstrap } from "./auth";
-import { T3_MOCK_UI_ENABLED, getMockEnvironmentDescriptor } from "../../t3MockRuntime";
 
 import { readPrimaryEnvironmentTarget, resolvePrimaryEnvironmentHttpUrl } from "./target";
 
@@ -48,12 +47,6 @@ function createPrimaryKnownEnvironment(input: {
 }
 
 async function fetchPrimaryEnvironmentDescriptor(): Promise<ExecutionEnvironmentDescriptor> {
-  if (T3_MOCK_UI_ENABLED) {
-    const descriptor = getMockEnvironmentDescriptor();
-    writePrimaryEnvironmentDescriptor(descriptor);
-    return descriptor;
-  }
-
   return retryTransientBootstrap(async () => {
     const response = await fetch(
       resolvePrimaryEnvironmentHttpUrl(SERVER_ENVIRONMENT_DESCRIPTOR_PATH),

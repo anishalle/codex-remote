@@ -16,16 +16,7 @@ import {
 } from "../../pairingUrl";
 
 import { resolvePrimaryEnvironmentHttpUrl } from "./target";
-import { Data, DateTime, Predicate } from "effect";
-import {
-  T3_MOCK_UI_ENABLED,
-  createMockPairingCredential,
-  getMockAuthAccessSnapshot,
-  getMockAuthSessionState,
-  revokeMockClientSession,
-  revokeMockPairingCredential,
-  revokeOtherMockClientSessions,
-} from "../../t3MockRuntime";
+import { Data, Predicate } from "effect";
 
 export class BootstrapHttpError extends Data.TaggedError("BootstrapHttpError")<{
   readonly message: string;
@@ -100,10 +91,6 @@ function getDesktopBootstrapCredential(): string | null {
 }
 
 export async function fetchSessionState(): Promise<AuthSessionState> {
-  if (T3_MOCK_UI_ENABLED) {
-    return getMockAuthSessionState();
-  }
-
   return retryTransientBootstrap(async () => {
     const response = await fetch(resolvePrimaryEnvironmentHttpUrl("/api/auth/session"), {
       credentials: "include",
@@ -124,17 +111,6 @@ async function readErrorMessage(response: Response, fallbackMessage: string): Pr
 }
 
 async function exchangeBootstrapCredential(credential: string): Promise<AuthBootstrapResult> {
-  if (T3_MOCK_UI_ENABLED) {
-    const session = getMockAuthSessionState();
-    return {
-      authenticated: true,
-      role: session.role ?? "owner",
-      sessionMethod: "browser-session-cookie",
-      expiresAt:
-        session.expiresAt ?? DateTime.makeUnsafe(Date.parse("2026-05-24T03:55:00.000Z")),
-    };
-  }
-
   return retryTransientBootstrap(async () => {
     const payload: AuthBootstrapInput = { credential };
     const response = await fetch(resolvePrimaryEnvironmentHttpUrl("/api/auth/bootstrap"), {
@@ -250,13 +226,6 @@ export async function submitServerAuthCredential(credential: string): Promise<vo
   }
 
   resolvedAuthenticatedGateState = null;
-  if (T3_MOCK_UI_ENABLED) {
-    resolvedAuthenticatedGateState = { status: "authenticated" };
-    bootstrapPromise = null;
-    stripPairingTokenFromUrl();
-    return;
-  }
-
   await exchangeBootstrapCredential(trimmedCredential);
   bootstrapPromise = null;
   stripPairingTokenFromUrl();
@@ -265,10 +234,6 @@ export async function submitServerAuthCredential(credential: string): Promise<vo
 export async function createServerPairingCredential(
   label?: string,
 ): Promise<AuthPairingCredentialResult> {
-  if (T3_MOCK_UI_ENABLED) {
-    return createMockPairingCredential(label);
-  }
-
   const trimmedLabel = label?.trim();
   const payload: AuthCreatePairingCredentialInput = trimmedLabel ? { label: trimmedLabel } : {};
   const response = await fetch(resolvePrimaryEnvironmentHttpUrl("/api/auth/pairing-token"), {
@@ -290,14 +255,6 @@ export async function createServerPairingCredential(
 }
 
 export async function listServerPairingLinks(): Promise<ReadonlyArray<ServerPairingLinkRecord>> {
-  if (T3_MOCK_UI_ENABLED) {
-    return getMockAuthAccessSnapshot().pairingLinks.map((pairingLink) => ({
-      ...pairingLink,
-      createdAt: DateTime.formatIso(pairingLink.createdAt),
-      expiresAt: DateTime.formatIso(pairingLink.expiresAt),
-    }));
-  }
-
   const response = await fetch(resolvePrimaryEnvironmentHttpUrl("/api/auth/pairing-links"), {
     credentials: "include",
   });
@@ -312,11 +269,6 @@ export async function listServerPairingLinks(): Promise<ReadonlyArray<ServerPair
 }
 
 export async function revokeServerPairingLink(id: string): Promise<void> {
-  if (T3_MOCK_UI_ENABLED) {
-    revokeMockPairingCredential(id);
-    return;
-  }
-
   const payload: AuthRevokePairingLinkInput = { id };
   const response = await fetch(resolvePrimaryEnvironmentHttpUrl("/api/auth/pairing-links/revoke"), {
     body: JSON.stringify(payload),
@@ -337,18 +289,6 @@ export async function revokeServerPairingLink(id: string): Promise<void> {
 export async function listServerClientSessions(): Promise<
   ReadonlyArray<ServerClientSessionRecord>
 > {
-  if (T3_MOCK_UI_ENABLED) {
-    return getMockAuthAccessSnapshot().clientSessions.map((clientSession) => ({
-      ...clientSession,
-      issuedAt: DateTime.formatIso(clientSession.issuedAt),
-      expiresAt: DateTime.formatIso(clientSession.expiresAt),
-      lastConnectedAt:
-        clientSession.lastConnectedAt === null
-          ? null
-          : DateTime.formatIso(clientSession.lastConnectedAt),
-    }));
-  }
-
   const response = await fetch(resolvePrimaryEnvironmentHttpUrl("/api/auth/clients"), {
     credentials: "include",
   });
@@ -363,11 +303,6 @@ export async function listServerClientSessions(): Promise<
 }
 
 export async function revokeServerClientSession(sessionId: AuthSessionId): Promise<void> {
-  if (T3_MOCK_UI_ENABLED) {
-    revokeMockClientSession(sessionId);
-    return;
-  }
-
   const payload: AuthRevokeClientSessionInput = { sessionId };
   const response = await fetch(resolvePrimaryEnvironmentHttpUrl("/api/auth/clients/revoke"), {
     body: JSON.stringify(payload),
@@ -386,10 +321,6 @@ export async function revokeServerClientSession(sessionId: AuthSessionId): Promi
 }
 
 export async function revokeOtherServerClientSessions(): Promise<number> {
-  if (T3_MOCK_UI_ENABLED) {
-    return revokeOtherMockClientSessions();
-  }
-
   const response = await fetch(
     resolvePrimaryEnvironmentHttpUrl("/api/auth/clients/revoke-others"),
     {
@@ -412,12 +343,6 @@ export async function revokeOtherServerClientSessions(): Promise<number> {
 }
 
 export async function resolveInitialServerAuthGateState(): Promise<ServerAuthGateState> {
-  if (T3_MOCK_UI_ENABLED) {
-    resolvedAuthenticatedGateState = { status: "authenticated" };
-    bootstrapPromise = null;
-    return resolvedAuthenticatedGateState;
-  }
-
   if (resolvedAuthenticatedGateState?.status === "authenticated") {
     return resolvedAuthenticatedGateState;
   }

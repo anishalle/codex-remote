@@ -10,15 +10,16 @@
     }
   },
   "scripts": {
+    "prepare": "effect-language-service patch",
     "typecheck": "tsc --noEmit",
     "test": "vitest run"
   },
   "dependencies": {
-    "@t3tools/contracts": "file:../contracts"
+    "@t3tools/contracts": "workspace:*"
   },
   "devDependencies": {
-    "@effect/language-service": "0.84.2",
-    "typescript": "^5.7.3",
-    "vitest": "^4.0.0"
+    "@effect/language-service": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
   }
 }

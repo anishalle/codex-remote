@@ -74,18 +74,19 @@
     }
   },
   "scripts": {
+    "prepare": "effect-language-service patch",
     "typecheck": "tsc --noEmit",
     "test": "vitest run"
   },
   "dependencies": {
-    "@t3tools/contracts": "file:../contracts",
-    "effect": "4.0.0-beta.45"
+    "@t3tools/contracts": "workspace:*",
+    "effect": "catalog:"
   },
   "devDependencies": {
-    "@effect/language-service": "0.84.2",
-    "@effect/vitest": "4.0.0-beta.45",
-    "@types/node": "^24.10.13",
-    "typescript": "^5.7.3",
-    "vitest": "^4.0.0"
+    "@effect/language-service": "catalog:",
+    "@effect/vitest": "catalog:",
+    "@types/node": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
   }
 }

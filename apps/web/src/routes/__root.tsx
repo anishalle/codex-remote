@@ -54,7 +54,6 @@ import {
   resolveInitialServerAuthGateState,
   updatePrimaryEnvironmentDescriptor,
 } from "../environments/primary";
-import { T3_MOCK_UI_ENABLED } from "../t3MockRuntime";
 
 export const Route = createRootRouteWithContext<{
   queryClient: QueryClient;
@@ -253,18 +252,6 @@ function EventRouter() {
         scopedProjectKey(
           scopeProjectRef(payload.environment.environmentId, payload.bootstrapProjectId),
         );
-      if (T3_MOCK_UI_ENABLED && bootstrapEnvironmentState) {
-        for (const projectId of bootstrapEnvironmentState.projectIds) {
-          const project = bootstrapEnvironmentState.projectById[projectId];
-          if (!project) {
-            continue;
-          }
-          const projectKey = deriveLogicalProjectKeyFromSettings(project, projectGroupingSettings);
-          useUiStateStore
-            .getState()
-            .setProjectExpanded(projectKey, projectKey === bootstrapProjectKey);
-        }
-      }
       useUiStateStore.getState().setProjectExpanded(bootstrapProjectKey, true);
 
       if (readPathname() !== "/") {

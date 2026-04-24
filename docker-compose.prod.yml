@@ -1,96 +1,36 @@
 services:
-  cloud-server:
+  t3:
     build:
       context: .
-      dockerfile: apps/cloud-server/Dockerfile
-    image: codex-remote/cloud-server:prod
+      dockerfile: apps/server/Dockerfile
+      args:
+        CODEX_NPM_PACKAGE: ${CODEX_NPM_PACKAGE:-@openai/codex}
+    image: codex-remote/t3:prod
     restart: unless-stopped
+    user: "${T3_UID:-1000}:${T3_GID:-1000}"
     environment:
-      CLOUD_CODEX_HOST: 0.0.0.0
-      CLOUD_CODEX_PORT: 8787
-      CLOUD_CODEX_DB_PATH: /data/cloudcodex.sqlite
-      CLOUD_CODEX_UPLOAD_DIR: /data/uploads
-      CLOUD_CODEX_TOKEN_HASH_SECRET: ${CLOUD_CODEX_TOKEN_HASH_SECRET:?set CLOUD_CODEX_TOKEN_HASH_SECRET}
-      CLOUD_CODEX_BOOTSTRAP_TOKEN: ${CLOUD_CODEX_BOOTSTRAP_TOKEN:?set CLOUD_CODEX_BOOTSTRAP_TOKEN}
-      CLOUD_CODEX_ALLOWED_ORIGINS: ${CLOUD_CODEX_ALLOWED_ORIGINS:-https://codex.anishalle.com}
-      CLOUD_CODEX_SECURE_COOKIES: "1"
-      CLOUD_CODEX_WS_MAX_PAYLOAD_BYTES: ${CLOUD_CODEX_WS_MAX_PAYLOAD_BYTES:-65536}
-    ports:
-      - "127.0.0.1:${CLOUD_CODEX_HOST_PORT:-8787}:8787"
-    volumes:
-      - cloudcodex-server-data:/data
-    read_only: true
-    tmpfs:
-      - /tmp:rw,noexec,nosuid,nodev,size=128m
-    user: "10001:10001"
-    cap_drop:
-      - ALL
-    security_opt:
-      - no-new-privileges:true
-    pids_limit: 512
-    mem_limit: 1g
-    cpus: 1
-    healthcheck:
-      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:8787/healthz').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
-      interval: 30s
-      timeout: 5s
-      retries: 3
-      start_period: 10s
-    networks:
-      - cloudcodex-control
-
-  cloud-runner:
-    build:
-      context: .
-      dockerfile: apps/cloud-runner/Dockerfile
-    image: codex-remote/cloud-runner:prod
-    restart: unless-stopped
-    profiles:
-      - runner
-    environment:
-      CLOUD_CODEX_SERVER_URL: ${CLOUD_CODEX_INTERNAL_SERVER_URL:-http://cloud-server:8787}
-      CLOUD_CODEX_ALLOW_INSECURE_HTTP: "1"
-      CLOUD_CODEX_RUNNER_ID: ${CLOUD_CODEX_RUNNER_ID:-cloud-runner-vps}
-      CLOUD_CODEX_RUNNER_NAME: ${CLOUD_CODEX_RUNNER_NAME:-VPS cloud runner}
-      CLOUD_CODEX_WS_ORIGIN: ${CLOUD_CODEX_PUBLIC_ORIGIN:-https://codex.anishalle.com}
-      CLOUD_CODEX_WORKSPACES_ROOT: /workspaces
-      CLOUD_CODEX_RUNNER_HOME: /cloudcodex
-      CLOUD_CODEX_SESSION_TOKEN_FILE: /cloudcodex/session.token
-      CLOUD_CODEX_CODEX_SANDBOX: workspace-write
-      CLOUD_CODEX_NETWORK_ACCESS: "0"
-      CODEX_HOME: /codex-home
+      T3CODE_HOME: /data/t3
+      T3_WORKSPACE_CWD: /workspace/codex-remote
+      T3CODE_PORT: 8787
       HOME: /codex-home
+      CODEX_HOME: /codex-home
+    ports:
+      - "127.0.0.1:${T3_HOST_PORT:-8787}:8787"
     volumes:
-      - cloudcodex-workspaces:/workspaces
-      - cloudcodex-codex-home:/codex-home
-      - cloudcodex-runner-state:/cloudcodex
-    read_only: true
-    tmpfs:
-      - /tmp:rw,noexec,nosuid,nodev,size=256m
-    user: "10001:10001"
+      - ${T3_SERVER_DATA_DIR:-/home/opc/.t3-server-data}:/data
+      - ${T3_CODEX_HOME_DIR:-/home/opc/.t3-codex-home}:/codex-home
+      - .:/workspace/codex-remote
     cap_drop:
       - ALL
     security_opt:
       - no-new-privileges:true
-      # Required for Codex/bubblewrap to create an inner user namespace while
-      # the runner remains non-root and keeps all Linux capabilities dropped.
       - seccomp=unconfined
     pids_limit: 512
     mem_limit: 4g
     cpus: 2
-    depends_on:
-      cloud-server:
-        condition: service_healthy
-    networks:
-      - cloudcodex-control
-    # Deliberately no "ports:" block and no Docker socket mount.
-
-volumes:
-  cloudcodex-server-data:
-  cloudcodex-workspaces:
-  cloudcodex-codex-home:
-  cloudcodex-runner-state:
-
-networks:
-  cloudcodex-control:
-    name: cloudcodex-control
+    healthcheck:
+      test: ["CMD", "bun", "-e", "fetch('http://127.0.0.1:8787/.well-known/t3/environment').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s

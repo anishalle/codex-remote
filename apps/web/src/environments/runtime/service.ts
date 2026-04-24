@@ -66,11 +66,6 @@ import {
   derivePhysicalProjectKey,
 } from "../../logicalProject";
 import { getClientSettings } from "~/hooks/useSettings";
-import {
-  T3_MOCK_UI_ENABLED,
-  createMockWsRpcClient,
-  resetMockAuthAccessState,
-} from "~/t3MockRuntime";
 
 type EnvironmentServiceState = {
   readonly queryClient: QueryClient;
@@ -796,11 +791,6 @@ function createEnvironmentConnectionHandlers() {
 function createPrimaryEnvironmentClient(
   knownEnvironment: ReturnType<typeof getPrimaryKnownEnvironment>,
 ) {
-  if (T3_MOCK_UI_ENABLED) {
-    resetMockAuthAccessState();
-    return createMockWsRpcClient();
-  }
-
   const wsBaseUrl = getKnownEnvironmentWsBaseUrl(knownEnvironment);
   if (!wsBaseUrl) {
     throw new Error(
