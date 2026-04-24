@@ -18,6 +18,7 @@ COPY apps ./apps
 COPY packages ./packages
 
 RUN bun install --frozen-lockfile
+RUN bun run build:web
 
 COPY apps/server/docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
 
