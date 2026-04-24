@@ -3,7 +3,7 @@ FROM node:25-bookworm-slim
 ARG CODEX_NPM_PACKAGE=@openai/codex
 
 RUN apt-get update \
-  && apt-get install -y --no-install-recommends ca-certificates git openssh-client tini \
+  && apt-get install -y --no-install-recommends bubblewrap ca-certificates git openssh-client tini \
   && rm -rf /var/lib/apt/lists/*
 
 RUN npm install -g "${CODEX_NPM_PACKAGE}"

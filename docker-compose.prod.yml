@@ -27,6 +27,9 @@ services:
       - ALL
     security_opt:
       - no-new-privileges:true
+      # Required for Codex/bubblewrap to create an inner user namespace while
+      # the runner remains non-root and keeps all Linux capabilities dropped.
+      - seccomp=unconfined
     pids_limit: 512
     mem_limit: 1g
     cpus: 1
