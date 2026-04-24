@@ -56,6 +56,8 @@ services:
       CLOUD_CODEX_WORKSPACES_ROOT: /workspaces
       CLOUD_CODEX_RUNNER_HOME: /cloudcodex
       CLOUD_CODEX_SESSION_TOKEN_FILE: /cloudcodex/session.token
+      CLOUD_CODEX_CODEX_SANDBOX: workspace-write
+      CLOUD_CODEX_NETWORK_ACCESS: "0"
       CODEX_HOME: /codex-home
       HOME: /codex-home
     volumes:

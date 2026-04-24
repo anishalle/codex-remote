@@ -51,10 +51,36 @@ export interface LocalRuntimeBridge {
 export interface CodexRuntimeBridgeOptions {
   readonly binaryPath?: string;
   readonly codexHome?: string;
+  readonly sandboxMode?: CodexSandboxMode;
+  readonly networkAccess?: boolean;
   readonly logger?: RunnerLogger;
 }
 
 type JsonRpcId = string | number;
+export type CodexSandboxMode = "read-only" | "workspace-write";
+
+type CodexSandboxPolicy =
+  | {
+      readonly type: "readOnly";
+      readonly access: {
+        readonly type: "restricted";
+        readonly includePlatformDefaults: boolean;
+        readonly readableRoots: readonly string[];
+      };
+      readonly networkAccess: boolean;
+    }
+  | {
+      readonly type: "workspaceWrite";
+      readonly writableRoots: readonly string[];
+      readonly readOnlyAccess: {
+        readonly type: "restricted";
+        readonly includePlatformDefaults: boolean;
+        readonly readableRoots: readonly string[];
+      };
+      readonly networkAccess: boolean;
+      readonly excludeTmpdirEnvVar: boolean;
+      readonly excludeSlashTmp: boolean;
+    };
 
 interface JsonRpcRequest {
   readonly id: JsonRpcId;
@@ -106,6 +132,44 @@ function redactRuntimeLine(line: string): string {
     .replace(/(authorization:\s*bearer\s+)[^\s]+/gi, "$1[REDACTED]")
     .replace(/((api[_-]?key|token|secret|password)=)[^\s]+/gi, "$1[REDACTED]")
     .replace(/(OPENAI_API_KEY=)[^\s]+/g, "$1[REDACTED]");
+}
+
+export function createCodexSandboxPolicy(input: {
+  readonly projectPath: string;
+  readonly mode?: CodexSandboxMode;
+  readonly networkAccess?: boolean;
+}): CodexSandboxPolicy {
+  const mode = input.mode ?? "workspace-write";
+  const networkAccess = input.networkAccess ?? false;
+  const readOnlyAccess = {
+    type: "restricted" as const,
+    includePlatformDefaults: true,
+    readableRoots: [input.projectPath],
+  };
+
+  if (mode === "read-only") {
+    return {
+      type: "readOnly",
+      access: readOnlyAccess,
+      networkAccess,
+    };
+  }
+
+  return {
+    type: "workspaceWrite",
+    writableRoots: [input.projectPath],
+    readOnlyAccess,
+    networkAccess,
+    excludeTmpdirEnvVar: false,
+    excludeSlashTmp: false,
+  };
+}
+
+function readCodexSandboxMode(env: NodeJS.ProcessEnv): CodexSandboxMode {
+  const value = env.CLOUD_CODEX_CODEX_SANDBOX?.trim();
+  if (!value) return "workspace-write";
+  if (value === "read-only" || value === "workspace-write") return value;
+  throw new Error("CLOUD_CODEX_CODEX_SANDBOX must be read-only or workspace-write.");
 }
 
 function readTurnIdFromNotification(params: unknown): string | undefined {
@@ -324,12 +388,16 @@ interface RuntimeSession {
 export class CodexRuntimeBridge implements LocalRuntimeBridge {
   private readonly binaryPath: string;
   private readonly codexHome?: string;
+  private readonly sandboxMode: CodexSandboxMode;
+  private readonly networkAccess: boolean;
   private readonly logger?: RunnerLogger;
   private readonly sessions = new Map<string, RuntimeSession>();
 
   constructor(options: CodexRuntimeBridgeOptions = {}) {
     this.binaryPath = options.binaryPath ?? process.env.CLOUD_CODEX_CODEX_BINARY ?? "codex";
     this.codexHome = options.codexHome ?? process.env.CODEX_HOME;
+    this.sandboxMode = options.sandboxMode ?? readCodexSandboxMode(process.env);
+    this.networkAccess = options.networkAccess ?? process.env.CLOUD_CODEX_NETWORK_ACCESS === "1";
     this.logger = options.logger;
   }
 
@@ -358,7 +426,11 @@ export class CodexRuntimeBridge implements LocalRuntimeBridge {
       threadId: session.providerThreadId,
       input: [{ type: "text", text: input.prompt }],
       approvalPolicy: "untrusted",
-      sandboxPolicy: { type: "readOnly" },
+      sandboxPolicy: createCodexSandboxPolicy({
+        projectPath: input.project.path,
+        mode: this.sandboxMode,
+        networkAccess: this.networkAccess,
+      }),
     });
     const activeTurnId = readTurnIdFromResponse(response);
     session.status = "running";
@@ -536,7 +608,7 @@ export class CodexRuntimeBridge implements LocalRuntimeBridge {
     const response = await session.process.request("thread/start", {
       cwd: input.project.path,
       approvalPolicy: "untrusted",
-      sandbox: "read-only",
+      sandbox: this.sandboxMode,
     });
     const providerThreadId =
       readProviderThreadIdFromThreadResponse(response) ?? `unknown_${randomUUID()}`;

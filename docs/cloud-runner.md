@@ -19,6 +19,8 @@ Path rules are intentionally strict:
 - The runner resolves symlinks and rejects any project or file path that escapes `/workspaces`.
 - The server validates project creation requests first, and the runner re-checks before creating or using paths.
 
+Codex turns run with `CLOUD_CODEX_CODEX_SANDBOX=workspace-write` by default so the agent can edit and test the registered project. The bridge sends a full sandbox policy with writes constrained to the selected project root, read access restricted to platform defaults plus that project root, and network access disabled unless `CLOUD_CODEX_NETWORK_ACCESS=1` is explicitly set. Use `CLOUD_CODEX_CODEX_SANDBOX=read-only` for an inspect-only runner.
+
 ## Build
 
 ```bash
