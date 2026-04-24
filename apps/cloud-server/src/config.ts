@@ -1,4 +1,6 @@
-import { resolve } from "node:path";
+import { mkdtempSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { dirname, join, resolve } from "node:path";
 
 export interface CloudServerConfig {
   readonly host: string;
@@ -11,6 +13,7 @@ export interface CloudServerConfig {
   readonly maxWebSocketPayloadBytes: number;
   readonly allowedOrigins: readonly string[];
   readonly secureCookies: boolean;
+  readonly uploadDir: string;
 }
 
 function readIntegerEnv(name: string, fallback: number): number {
@@ -47,6 +50,10 @@ export function loadConfigFromEnv(): CloudServerConfig {
     maxWebSocketPayloadBytes: readIntegerEnv("CLOUD_CODEX_WS_MAX_PAYLOAD_BYTES", 64 * 1024),
     allowedOrigins: readCsvEnv("CLOUD_CODEX_ALLOWED_ORIGINS"),
     secureCookies: process.env.CLOUD_CODEX_SECURE_COOKIES === "1",
+    uploadDir: resolve(
+      process.env.CLOUD_CODEX_UPLOAD_DIR?.trim() ||
+        (dbPath === ":memory:" ? mkdtempSync(join(tmpdir(), "cloudcodex-uploads-")) : join(dirname(dbPath), "uploads")),
+    ),
   };
 }
 
@@ -62,6 +69,7 @@ export function makeTestConfig(overrides: Partial<CloudServerConfig> = {}): Clou
     maxWebSocketPayloadBytes: 64 * 1024,
     allowedOrigins: [],
     secureCookies: false,
+    uploadDir: mkdtempSync(join(tmpdir(), "cloudcodex-test-uploads-")),
     ...overrides,
   };
 }

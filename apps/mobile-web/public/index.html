@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>CloudCodex</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <main class="app-shell">
+      <header class="topbar">
+        <div>
+          <h1>codex-remote</h1>
+          <p id="connectionStatus" aria-live="polite">Disconnected</p>
+        </div>
+        <button id="refreshButton" class="secondary-button" title="Refresh" type="button">
+          Refresh
+        </button>
+      </header>
+
+      <div id="notice" class="notice" role="status" aria-live="polite"></div>
+
+      <section id="authPanel" class="panel auth-panel">
+        <h2>Pair Browser</h2>
+        <form id="pairForm">
+          <label>
+            Client pairing token
+            <input id="pairingTokenInput" name="pairingToken" autocomplete="one-time-code" required />
+          </label>
+          <label>
+            Device name
+            <input id="deviceNameInput" name="deviceName" value="mobile web" required />
+          </label>
+          <button type="submit">Pair</button>
+        </form>
+      </section>
+
+      <nav class="tabs" aria-label="Primary">
+        <button class="tab active" data-view="overview">Overview</button>
+        <button class="tab" data-view="thread">Thread</button>
+        <button class="tab" data-view="approvals">Approvals</button>
+      </nav>
+
+      <section id="overviewView" class="view active">
+        <div class="panel">
+          <div class="panel-header">
+            <h2>Runners</h2>
+          </div>
+          <div id="runnerList" class="list"></div>
+        </div>
+        <div class="panel">
+          <div class="panel-header">
+            <h2>Projects</h2>
+          </div>
+          <div id="projectList" class="list"></div>
+        </div>
+        <div class="panel">
+          <div class="panel-header">
+            <h2>Threads</h2>
+          </div>
+          <div id="threadList" class="list"></div>
+        </div>
+      </section>
+
+      <section id="threadView" class="view">
+        <div class="thread-toolbar">
+          <select id="runnerSelect" aria-label="Runner"></select>
+          <select id="projectSelect" aria-label="Project"></select>
+          <select id="threadSelect" aria-label="Thread"></select>
+        </div>
+        <div class="panel timeline-panel">
+          <div class="panel-header">
+            <div>
+              <h2 id="threadTitle">No Thread</h2>
+              <p id="threadMeta"></p>
+            </div>
+            <button id="interruptButton" class="danger-button" type="button">Interrupt</button>
+          </div>
+          <div id="timeline" class="timeline"></div>
+        </div>
+        <form id="promptForm" class="prompt-box">
+          <textarea
+            id="promptInput"
+            rows="3"
+            placeholder="Send a prompt or steer the selected thread"
+          ></textarea>
+          <div class="prompt-actions">
+            <button id="newThreadButton" type="button">New Thread</button>
+            <button type="submit">Send</button>
+          </div>
+        </form>
+      </section>
+
+      <section id="approvalsView" class="view">
+        <div class="panel">
+          <div class="panel-header">
+            <h2>Approval Inbox</h2>
+          </div>
+          <div id="approvalList" class="approval-list"></div>
+        </div>
+      </section>
+    </main>
+    <script type="module" src="/app.js"></script>
+  </body>
+</html>

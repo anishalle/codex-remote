@@ -1,0 +1,11 @@
+.git
+.DS_Store
+._*
+**/._*
+node_modules
+data
+*.log
+.cloudcodex
+.env
+.env.*
+!.env.example

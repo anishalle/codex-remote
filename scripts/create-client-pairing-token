@@ -1,0 +1,46 @@
+#!/usr/bin/env sh
+set -eu
+
+ttl_seconds="${1:-300}"
+label="${2:-iPhone}"
+env_file="${CLOUD_CODEX_ENV_FILE:-.env.prod}"
+server_url="${CLOUD_CODEX_LOCAL_SERVER_URL:-http://127.0.0.1:8787}"
+
+bootstrap_token="$(
+  python3 - "$env_file" <<'PY'
+from pathlib import Path
+import sys
+
+env_path = Path(sys.argv[1])
+for line in env_path.read_text().splitlines():
+    if line.startswith("CLOUD_CODEX_BOOTSTRAP_TOKEN="):
+        print(line.split("=", 1)[1])
+        raise SystemExit(0)
+raise SystemExit("CLOUD_CODEX_BOOTSTRAP_TOKEN not found")
+PY
+)"
+
+request_body="$(
+  python3 - "$label" "$ttl_seconds" <<'PY'
+import json
+import sys
+
+print(json.dumps({
+    "deviceKind": "client",
+    "label": sys.argv[1],
+    "ttlSeconds": int(sys.argv[2]),
+}))
+PY
+)"
+
+curl -fsS \
+  -X POST "$server_url/api/pairing-tokens" \
+  -H "content-type: application/json" \
+  -H "x-bootstrap-token: $bootstrap_token" \
+  --data "$request_body" |
+  python3 -c '
+import json
+import sys
+
+print(json.load(sys.stdin)["pairingToken"])
+'

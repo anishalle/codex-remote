@@ -1,9 +1,14 @@
 import assert from "node:assert/strict";
-import { randomBytes, randomUUID } from "node:crypto";
+import { createHash, randomBytes, randomUUID } from "node:crypto";
+import { execFileSync } from "node:child_process";
+import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import net from "node:net";
 import { afterEach, test } from "node:test";
 
 import { createEnvelope, type Envelope } from "../../../packages/protocol/src/index.ts";
+import { createHandoffPackage } from "../../../packages/workspace-packager/src/index.ts";
 import { makeTestConfig, type CloudServerConfig } from "../src/config.ts";
 import { createCloudServer, type CloudServer } from "../src/http.ts";
 
@@ -316,6 +321,34 @@ function testEnvelope<TType extends string, TPayload>(
   return createEnvelope(type, payload, { id: randomUUID() });
 }
 
+function sha256(buffer: Buffer): string {
+  return createHash("sha256").update(buffer).digest("hex");
+}
+
+function makeHandoffPackage(t: test.TestContext): {
+  readonly raw: Buffer;
+  readonly manifest: unknown;
+  readonly sha256: string;
+} {
+  const root = mkdtempSync(join(tmpdir(), "cloud-server-handoff-"));
+  t.after(() => rmSync(root, { recursive: true, force: true }));
+  execFileSync("git", ["init"], { cwd: root });
+  execFileSync("git", ["config", "user.email", "test@example.com"], { cwd: root });
+  execFileSync("git", ["config", "user.name", "Test User"], { cwd: root });
+  writeFileSync(join(root, "README.md"), "hello\n");
+  execFileSync("git", ["add", "README.md"], { cwd: root });
+  execFileSync("git", ["commit", "-m", "init"], { cwd: root });
+  const outputPath = join(root, "handoff.json");
+  const created = createHandoffPackage({
+    workspaceRoot: root,
+    outputPath,
+    summary: "Continue this test handoff.",
+    exportedEventCount: 1,
+  });
+  const raw = readFileSync(outputPath);
+  return { raw, manifest: created.manifest, sha256: sha256(raw) };
+}
+
 test("pairing finish issues hashed session tokens and authenticates the session", async () => {
   const { server, baseUrl } = await startServer();
 
@@ -398,6 +431,38 @@ test("WebSocket upgrade without authentication fails before protocol acceptance"
   socket.destroy();
 });
 
+test("mobile web harness is served and can authenticate with the session cookie", async () => {
+  const { baseUrl } = await startServer();
+
+  const appResponse = await fetch(`${baseUrl}/`);
+  assert.equal(appResponse.status, 200);
+  assert.match(await appResponse.text(), /codex-remote/);
+
+  const createResponse = await postJson(
+    baseUrl,
+    "/api/pairing-tokens",
+    { deviceKind: "client", label: "mobile-web" },
+    { "x-bootstrap-token": "test-bootstrap-token" },
+  );
+  assert.equal(createResponse.status, 201);
+  const created = await readJson(createResponse);
+
+  const finishResponse = await postJson(baseUrl, "/api/pairing/finish", {
+    pairingToken: created.pairingToken,
+    deviceName: "mobile web",
+    deviceKind: "client",
+  });
+  assert.equal(finishResponse.status, 200);
+  const cookie = finishResponse.headers.get("set-cookie");
+  assert.match(cookie ?? "", /cc_session=/);
+
+  const sessionResponse = await fetch(`${baseUrl}/api/session`, {
+    headers: { cookie: cookie ?? "" },
+  });
+  assert.equal(sessionResponse.status, 200);
+  assert.equal((await readJson(sessionResponse)).deviceKind, "client");
+});
+
 test("runner WebSocket appends mocked events and client WebSocket lists them", { timeout: 5000 }, async () => {
   const { baseUrl } = await startServer();
   const runnerSession = await pairDevice(baseUrl, "runner");
@@ -454,5 +519,130 @@ test("runner WebSocket appends mocked events and client WebSocket lists them", {
   } finally {
     runner?.close();
     client?.close();
+  }
+});
+
+test("cloud project creation is forwarded to the connected runner", { timeout: 5000 }, async () => {
+  const { baseUrl } = await startServer();
+  const runnerSession = await pairDevice(baseUrl, "runner");
+  const clientSession = await pairDevice(baseUrl, "client");
+  let runner: RawWebSocket | null = null;
+
+  try {
+    runner = await connectWebSocket({
+      baseUrl,
+      path: "/ws/runner",
+      token: runnerSession.sessionToken,
+    });
+    runner.sendJson(
+      testEnvelope("runner.hello", {
+        runnerId: "cloud-runner-1",
+        name: "cloud runner",
+        version: "test",
+        capabilities: ["cloud-project-create"],
+      }),
+    );
+    assert.equal((await runner.readJson()).type, "runner.hello.ack");
+
+    const createResponse = await postJson(
+      baseUrl,
+      "/api/cloud-projects",
+      {
+        runnerId: "cloud-runner-1",
+        projectId: "cloud-repo",
+      },
+      { authorization: `Bearer ${clientSession.sessionToken}` },
+    );
+    assert.equal(createResponse.status, 202);
+    const forwarded = await runner.readJson();
+    assert.equal(forwarded.type, "runner.project.create");
+    assert.equal(forwarded.payload.projectId, "cloud-repo");
+
+    runner.sendJson(
+      testEnvelope("runner.project.created", {
+        commandId: forwarded.payload.commandId,
+        projectId: "cloud-repo",
+        name: "cloud-repo",
+        createdAt: new Date().toISOString(),
+      }),
+    );
+
+    const projectsResponse = await fetch(`${baseUrl}/api/projects?runnerId=cloud-runner-1`, {
+      headers: { authorization: `Bearer ${clientSession.sessionToken}` },
+    });
+    assert.equal(projectsResponse.status, 200);
+    const projects = await readJson(projectsResponse);
+    assert.equal(projects.projects.length, 1);
+    assert.equal(projects.projects[0].projectId, "cloud-repo");
+  } finally {
+    runner?.close();
+  }
+});
+
+test("chunked handoff upload validates package and sends runner unpack command", { timeout: 5000 }, async (t) => {
+  const { baseUrl } = await startServer();
+  const runnerSession = await pairDevice(baseUrl, "runner");
+  const clientSession = await pairDevice(baseUrl, "client");
+  const handoff = makeHandoffPackage(t);
+  let runner: RawWebSocket | null = null;
+
+  try {
+    runner = await connectWebSocket({
+      baseUrl,
+      path: "/ws/runner",
+      token: runnerSession.sessionToken,
+    });
+    runner.sendJson(
+      testEnvelope("runner.hello", {
+        runnerId: "cloud-runner-upload",
+        name: "cloud runner",
+        version: "test",
+        capabilities: ["cloud-workspace-unpack"],
+      }),
+    );
+    assert.equal((await runner.readJson()).type, "runner.hello.ack");
+
+    const initResponse = await postJson(
+      baseUrl,
+      "/api/uploads/init",
+      {
+        runnerId: "cloud-runner-upload",
+        projectId: "handoff-repo",
+        totalBytes: handoff.raw.byteLength,
+        sha256: handoff.sha256,
+        manifest: handoff.manifest,
+      },
+      { authorization: `Bearer ${clientSession.sessionToken}` },
+    );
+    assert.equal(initResponse.status, 201);
+    const init = await readJson(initResponse);
+    assert.match(init.uploadId, /^upload_/);
+
+    const chunkResponse = await postJson(
+      baseUrl,
+      `/api/uploads/${encodeURIComponent(init.uploadId)}/chunks`,
+      {
+        index: 0,
+        dataBase64: handoff.raw.toString("base64"),
+        sha256: handoff.sha256,
+      },
+      { authorization: `Bearer ${clientSession.sessionToken}` },
+    );
+    assert.equal(chunkResponse.status, 202);
+
+    const completeResponse = await postJson(
+      baseUrl,
+      `/api/uploads/${encodeURIComponent(init.uploadId)}/complete`,
+      { sha256: handoff.sha256 },
+      { authorization: `Bearer ${clientSession.sessionToken}` },
+    );
+    assert.equal(completeResponse.status, 202);
+
+    const unpack = await runner.readJson();
+    assert.equal(unpack.type, "runner.workspace.unpack");
+    assert.equal(unpack.payload.uploadId, init.uploadId);
+    assert.equal(unpack.payload.projectId, "handoff-repo");
+  } finally {
+    runner?.close();
   }
 });

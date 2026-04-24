@@ -193,38 +193,29 @@ async function commandRun(
   }
   const config = loadConfig(paths);
   const project = requireProject(config, projectName);
-  const { RunnerStateDatabase } = await import("./state.ts");
-  const { connectAndFlushOnce, enqueueMockRun } = await import("./runner.ts");
-  const state = new RunnerStateDatabase(paths.stateDbPath);
-  try {
-    const queued = enqueueMockRun({
-      state,
-      runnerId: config.runnerId,
-      project,
-      prompt,
-    });
-    io.stdout(`Queued mocked thread ${queued.threadId}`);
-    if (config.serverUrl && config.sessionToken) {
-      try {
-        const result = await connectAndFlushOnce({
-          config,
-          state,
-          timeoutMs: 5000,
-          logger: cliLogger(io),
-        });
-        io.stdout(`Flushed ${result.acked}/${result.sent} queued events`);
-      } catch (error) {
-        io.stderr(
-          `Queued locally; daemon will retry later: ${
-            error instanceof Error ? error.message : String(error)
-          }`,
-        );
-      }
-    }
-    return { exitCode: 0 };
-  } finally {
-    state.close();
+  const serverUrl = requireServerUrl(config);
+  const sessionToken = config.sessionToken;
+  if (!sessionToken) {
+    throw new Error("Run cloudcodex pair first.");
   }
+  const response = await fetch(`${serverUrl}/api/turns/start`, {
+    method: "POST",
+    headers: {
+      "authorization": `Bearer ${sessionToken}`,
+      "content-type": "application/json",
+    },
+    body: JSON.stringify({
+      runnerId: config.runnerId,
+      projectId: project.name,
+      prompt,
+    }),
+  });
+  const body = await response.json() as any;
+  if (!response.ok) {
+    throw new Error(body?.error?.message ?? `Turn start failed with HTTP ${response.status}.`);
+  }
+  io.stdout(`Started cloud thread ${body.cloudThreadId}`);
+  return { exitCode: 0 };
 }
 
 function readOption(args: readonly string[], name: string): string | undefined {

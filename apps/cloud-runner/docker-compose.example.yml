@@ -1,0 +1,45 @@
+services:
+  cloud-runner:
+    build:
+      context: ../..
+      dockerfile: apps/cloud-runner/Dockerfile
+    image: codex-remote/cloud-runner:local
+    restart: unless-stopped
+    environment:
+      CLOUD_CODEX_SERVER_URL: ${CLOUD_CODEX_SERVER_URL:?set the authenticated cloud-server URL}
+      CLOUD_CODEX_RUNNER_ID: ${CLOUD_CODEX_RUNNER_ID:-cloud-runner-vps}
+      CLOUD_CODEX_RUNNER_NAME: ${CLOUD_CODEX_RUNNER_NAME:-VPS cloud runner}
+      CLOUD_CODEX_WS_ORIGIN: ${CLOUD_CODEX_WS_ORIGIN:-}
+      CLOUD_CODEX_WORKSPACES_ROOT: /workspaces
+      CLOUD_CODEX_RUNNER_HOME: /cloudcodex
+      CLOUD_CODEX_SESSION_TOKEN_FILE: /cloudcodex/session.token
+      CODEX_HOME: /codex-home
+      HOME: /codex-home
+    volumes:
+      - cloudcodex-workspaces:/workspaces
+      - cloudcodex-codex-home:/codex-home
+      - cloudcodex-runner-state:/cloudcodex
+    read_only: true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,nodev,size=256m
+    user: "10001:10001"
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    pids_limit: 512
+    mem_limit: 4g
+    cpus: 2
+    networks:
+      - cloudcodex-control
+    # Deliberately no "ports:" block. The runner connects outbound to cloud-server only.
+    # Deliberately no /var/run/docker.sock mount.
+
+volumes:
+  cloudcodex-workspaces:
+  cloudcodex-codex-home:
+  cloudcodex-runner-state:
+
+networks:
+  cloudcodex-control:
+    name: cloudcodex-control

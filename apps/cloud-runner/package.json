@@ -1,0 +1,12 @@
+{
+  "name": "@codex-remote/cloud-runner",
+  "private": true,
+  "type": "module",
+  "bin": {
+    "cloudcodex-cloud-runner": "./src/index.ts"
+  },
+  "scripts": {
+    "start": "node ./src/index.ts daemon",
+    "test": "node --test ./test/*.test.ts"
+  }
+}

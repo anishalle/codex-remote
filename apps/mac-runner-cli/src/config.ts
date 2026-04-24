@@ -161,6 +161,21 @@ export function requireProject(config: MacRunnerConfig, projectName: string): Pr
   return project;
 }
 
+export function validateRegisteredProject(
+  config: MacRunnerConfig,
+  projectName: string,
+): ProjectConfig {
+  const project = requireProject(config, projectName);
+  const currentRoot = realpathSync(project.path);
+  if (currentRoot !== project.path) {
+    throw new Error(`Project "${projectName}" no longer resolves to its registered root.`);
+  }
+  if (!statSync(currentRoot).isDirectory()) {
+    throw new Error(`Project "${projectName}" is not a directory.`);
+  }
+  return project;
+}
+
 function normalizeConfig(input: Partial<MacRunnerConfig>): MacRunnerConfig {
   const fallback = defaultConfig();
   const projects =

@@ -3,7 +3,16 @@ import { dirname } from "node:path";
 import { randomUUID } from "node:crypto";
 import { DatabaseSync } from "node:sqlite";
 
-import type { CloudEvent } from "../../../packages/protocol/src/index.ts";
+import type {
+  ApprovalDecision,
+  ApprovalStatus,
+  CloudEvent,
+  PendingApprovalSummary,
+  ProjectSummary,
+  RunnerSummary,
+  ThreadStatus,
+  ThreadSummary,
+} from "../../../packages/protocol/src/index.ts";
 
 export interface AuditRecordInput {
   readonly actorKind: "bootstrap" | "device" | "anonymous" | "system";
@@ -74,6 +83,98 @@ export interface ListEventsInput {
   readonly limit?: number;
 }
 
+export interface CreateThreadInput {
+  readonly cloudThreadId: string;
+  readonly runnerId: string;
+  readonly projectId: string;
+  readonly status: ThreadStatus;
+  readonly createdAt: string;
+}
+
+export interface UpdateThreadStatusInput {
+  readonly cloudThreadId: string;
+  readonly status: ThreadStatus;
+  readonly providerThreadId?: string;
+  readonly activeTurnId?: string | null;
+  readonly lastEventSequence?: number;
+  readonly updatedAt: string;
+}
+
+export interface ListThreadsInput {
+  readonly runnerId?: string;
+  readonly projectId?: string;
+  readonly limit?: number;
+}
+
+export interface CreateRunnerCommandInput {
+  readonly commandId: string;
+  readonly runnerId: string;
+  readonly cloudThreadId: string;
+  readonly commandType: string;
+  readonly status: string;
+  readonly payload: unknown;
+  readonly createdAt: string;
+}
+
+export interface UpsertProjectInput {
+  readonly projectId: string;
+  readonly runnerId: string;
+  readonly name: string;
+  readonly lastSeenAt: string;
+}
+
+export interface UpsertPendingApprovalInput {
+  readonly approvalId: string;
+  readonly runnerId: string;
+  readonly cloudThreadId: string;
+  readonly projectId: string;
+  readonly approvalType: string;
+  readonly status: ApprovalStatus;
+  readonly payload: unknown;
+  readonly createdAt: string;
+}
+
+export interface ResolvePendingApprovalInput {
+  readonly approvalId: string;
+  readonly status: ApprovalStatus;
+  readonly decision: ApprovalDecision;
+  readonly resolvedAt: string;
+}
+
+export interface CreateUploadInput {
+  readonly uploadId: string;
+  readonly runnerId: string;
+  readonly projectId: string;
+  readonly actorDeviceId: string;
+  readonly status: string;
+  readonly filePath: string;
+  readonly totalBytes: number;
+  readonly expectedSha256?: string | null;
+  readonly manifest: unknown;
+  readonly handoffPrompt?: string | null;
+  readonly createdAt: string;
+}
+
+export interface HandoffUploadRow {
+  readonly uploadId: string;
+  readonly runnerId: string;
+  readonly projectId: string;
+  readonly actorDeviceId: string;
+  readonly status: string;
+  readonly filePath: string;
+  readonly totalBytes: number;
+  readonly receivedBytes: number;
+  readonly expectedSha256: string | null;
+  readonly actualSha256: string | null;
+  readonly manifest: unknown;
+  readonly handoffPrompt: string | null;
+  readonly commandId: string | null;
+  readonly cloudThreadId: string | null;
+  readonly createdAt: string;
+  readonly completedAt: string | null;
+  readonly unpackedAt: string | null;
+}
+
 function json(value: unknown): string {
   return JSON.stringify(value ?? null);
 }
@@ -113,6 +214,77 @@ function toCloudEvent(row: any): CloudEvent {
     payload: parseJson(row.payload_json),
     occurredAt: row.occurred_at,
     receivedAt: row.received_at,
+  };
+}
+
+function toThreadSummary(row: any): ThreadSummary {
+  return {
+    cloudThreadId: row.cloud_thread_id,
+    runnerId: row.runner_id,
+    projectId: row.project_id,
+    status: row.status,
+    ...(row.provider_thread_id ? { providerThreadId: row.provider_thread_id } : {}),
+    ...(row.active_turn_id ? { activeTurnId: row.active_turn_id } : {}),
+    ...(row.last_event_sequence !== null ? { lastEventSequence: row.last_event_sequence } : {}),
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+  };
+}
+
+function toRunnerSummary(row: any): RunnerSummary {
+  return {
+    runnerId: row.runner_id,
+    name: row.name,
+    ...(row.version ? { version: row.version } : {}),
+    capabilities: parseJson(row.capabilities_json) as string[],
+    connected: row.connected === 1,
+    lastSeenAt: row.last_seen_at,
+  };
+}
+
+function toProjectSummary(row: any): ProjectSummary {
+  return {
+    projectId: row.project_id,
+    runnerId: row.runner_id,
+    name: row.name,
+    lastSeenAt: row.last_seen_at,
+  };
+}
+
+function toPendingApprovalSummary(row: any): PendingApprovalSummary {
+  return {
+    approvalId: row.approval_id,
+    runnerId: row.runner_id,
+    cloudThreadId: row.cloud_thread_id,
+    projectId: row.project_id,
+    approvalType: row.approval_type,
+    status: row.status,
+    payload: parseJson(row.payload_json),
+    createdAt: row.created_at,
+    ...(row.resolved_at ? { resolvedAt: row.resolved_at } : {}),
+    ...(row.decision ? { decision: row.decision } : {}),
+  };
+}
+
+function toHandoffUploadRow(row: any): HandoffUploadRow {
+  return {
+    uploadId: row.upload_id,
+    runnerId: row.runner_id,
+    projectId: row.project_id,
+    actorDeviceId: row.actor_device_id,
+    status: row.status,
+    filePath: row.file_path,
+    totalBytes: row.total_bytes,
+    receivedBytes: row.received_bytes,
+    expectedSha256: row.expected_sha256,
+    actualSha256: row.actual_sha256,
+    manifest: parseJson(row.manifest_json),
+    handoffPrompt: row.handoff_prompt,
+    commandId: row.command_id,
+    cloudThreadId: row.cloud_thread_id,
+    createdAt: row.created_at,
+    completedAt: row.completed_at,
+    unpackedAt: row.unpacked_at,
   };
 }
 
@@ -186,6 +358,18 @@ export class CloudDatabase {
         FOREIGN KEY (device_id) REFERENCES devices(device_id)
       );
 
+      CREATE TABLE IF NOT EXISTS projects (
+        project_id TEXT NOT NULL,
+        runner_id TEXT NOT NULL,
+        name TEXT NOT NULL,
+        last_seen_at TEXT NOT NULL,
+        PRIMARY KEY (runner_id, project_id),
+        FOREIGN KEY (runner_id) REFERENCES runners(runner_id)
+      );
+
+      CREATE INDEX IF NOT EXISTS idx_projects_project_id
+        ON projects(project_id);
+
       CREATE TABLE IF NOT EXISTS cloud_events (
         sequence INTEGER PRIMARY KEY AUTOINCREMENT,
         event_id TEXT NOT NULL UNIQUE,
@@ -203,6 +387,81 @@ export class CloudDatabase {
 
       CREATE INDEX IF NOT EXISTS idx_cloud_events_runner_sequence
         ON cloud_events(runner_id, sequence);
+
+      CREATE TABLE IF NOT EXISTS threads (
+        cloud_thread_id TEXT PRIMARY KEY,
+        runner_id TEXT NOT NULL,
+        project_id TEXT NOT NULL,
+        provider_thread_id TEXT,
+        status TEXT NOT NULL,
+        active_turn_id TEXT,
+        last_event_sequence INTEGER,
+        created_at TEXT NOT NULL,
+        updated_at TEXT NOT NULL
+      );
+
+      CREATE INDEX IF NOT EXISTS idx_threads_runner_updated
+        ON threads(runner_id, updated_at);
+
+      CREATE INDEX IF NOT EXISTS idx_threads_project_updated
+        ON threads(project_id, updated_at);
+
+      CREATE TABLE IF NOT EXISTS runner_commands (
+        command_id TEXT PRIMARY KEY,
+        runner_id TEXT NOT NULL,
+        cloud_thread_id TEXT NOT NULL,
+        command_type TEXT NOT NULL,
+        status TEXT NOT NULL,
+        payload_json TEXT NOT NULL,
+        created_at TEXT NOT NULL,
+        updated_at TEXT NOT NULL,
+        FOREIGN KEY (cloud_thread_id) REFERENCES threads(cloud_thread_id)
+      );
+
+      CREATE INDEX IF NOT EXISTS idx_runner_commands_thread_created
+        ON runner_commands(cloud_thread_id, created_at);
+
+      CREATE TABLE IF NOT EXISTS pending_approvals (
+        approval_id TEXT PRIMARY KEY,
+        runner_id TEXT NOT NULL,
+        cloud_thread_id TEXT NOT NULL,
+        project_id TEXT NOT NULL,
+        approval_type TEXT NOT NULL,
+        status TEXT NOT NULL,
+        payload_json TEXT NOT NULL,
+        created_at TEXT NOT NULL,
+        resolved_at TEXT,
+        decision TEXT
+      );
+
+      CREATE INDEX IF NOT EXISTS idx_pending_approvals_status_created
+        ON pending_approvals(status, created_at);
+
+      CREATE INDEX IF NOT EXISTS idx_pending_approvals_thread
+        ON pending_approvals(cloud_thread_id, created_at);
+
+      CREATE TABLE IF NOT EXISTS handoff_uploads (
+        upload_id TEXT PRIMARY KEY,
+        runner_id TEXT NOT NULL,
+        project_id TEXT NOT NULL,
+        actor_device_id TEXT NOT NULL,
+        status TEXT NOT NULL,
+        file_path TEXT NOT NULL,
+        total_bytes INTEGER NOT NULL,
+        received_bytes INTEGER NOT NULL DEFAULT 0,
+        expected_sha256 TEXT,
+        actual_sha256 TEXT,
+        manifest_json TEXT NOT NULL,
+        handoff_prompt TEXT,
+        command_id TEXT,
+        cloud_thread_id TEXT,
+        created_at TEXT NOT NULL,
+        completed_at TEXT,
+        unpacked_at TEXT
+      );
+
+      CREATE INDEX IF NOT EXISTS idx_handoff_uploads_runner_status
+        ON handoff_uploads(runner_id, status, created_at);
 
       CREATE TABLE IF NOT EXISTS audit_log (
         id TEXT PRIMARY KEY,
@@ -347,6 +606,34 @@ export class CloudDatabase {
       .run(input.lastSeenAt, input.runnerId);
   }
 
+  listRunners(): RunnerSummary[] {
+    const rows = this.raw
+      .prepare(`SELECT * FROM runners ORDER BY connected DESC, last_seen_at DESC`)
+      .all();
+    return rows.map(toRunnerSummary);
+  }
+
+  upsertProject(input: UpsertProjectInput): void {
+    this.raw
+      .prepare(
+        `INSERT INTO projects (project_id, runner_id, name, last_seen_at)
+         VALUES (?, ?, ?, ?)
+         ON CONFLICT(runner_id, project_id) DO UPDATE SET
+           name = excluded.name,
+           last_seen_at = excluded.last_seen_at`,
+      )
+      .run(input.projectId, input.runnerId, input.name, input.lastSeenAt);
+  }
+
+  listProjects(input: { readonly runnerId?: string } = {}): ProjectSummary[] {
+    const rows = input.runnerId
+      ? this.raw
+          .prepare(`SELECT * FROM projects WHERE runner_id = ? ORDER BY name ASC`)
+          .all(input.runnerId)
+      : this.raw.prepare(`SELECT * FROM projects ORDER BY name ASC`).all();
+    return rows.map(toProjectSummary);
+  }
+
   appendEvent(input: AppendEventInput): CloudEvent {
     this.raw
       .prepare(
@@ -376,6 +663,299 @@ export class CloudDatabase {
       .prepare(`SELECT * FROM cloud_events WHERE event_id = ?`)
       .get(eventId);
     return row ? toCloudEvent(row) : null;
+  }
+
+  createThread(input: CreateThreadInput): ThreadSummary {
+    this.raw
+      .prepare(
+        `INSERT INTO threads (
+          cloud_thread_id, runner_id, project_id, status, created_at, updated_at
+        ) VALUES (?, ?, ?, ?, ?, ?)
+        ON CONFLICT(cloud_thread_id) DO UPDATE SET
+          runner_id = excluded.runner_id,
+          project_id = excluded.project_id,
+          status = excluded.status,
+          updated_at = excluded.updated_at`,
+      )
+      .run(
+        input.cloudThreadId,
+        input.runnerId,
+        input.projectId,
+        input.status,
+        input.createdAt,
+        input.createdAt,
+      );
+    const thread = this.getThread(input.cloudThreadId);
+    if (!thread) {
+      throw new Error(`Failed to create thread ${input.cloudThreadId}.`);
+    }
+    return thread;
+  }
+
+  updateThreadStatus(input: UpdateThreadStatusInput): ThreadSummary | null {
+    const current = this.getThread(input.cloudThreadId);
+    if (!current) return null;
+    this.raw
+      .prepare(
+        `UPDATE threads
+         SET status = ?,
+             provider_thread_id = COALESCE(?, provider_thread_id),
+             active_turn_id = ?,
+             last_event_sequence = COALESCE(?, last_event_sequence),
+             updated_at = ?
+         WHERE cloud_thread_id = ?`,
+      )
+      .run(
+        input.status,
+        input.providerThreadId ?? null,
+        input.activeTurnId ?? null,
+        input.lastEventSequence ?? null,
+        input.updatedAt,
+        input.cloudThreadId,
+      );
+    return this.getThread(input.cloudThreadId);
+  }
+
+  updateThreadLastEvent(input: {
+    readonly cloudThreadId: string;
+    readonly sequence: number;
+    readonly updatedAt: string;
+  }): void {
+    this.raw
+      .prepare(
+        `UPDATE threads
+         SET last_event_sequence = ?, updated_at = ?
+         WHERE cloud_thread_id = ?`,
+      )
+      .run(input.sequence, input.updatedAt, input.cloudThreadId);
+  }
+
+  getThread(cloudThreadId: string): ThreadSummary | null {
+    const row = this.raw
+      .prepare(`SELECT * FROM threads WHERE cloud_thread_id = ?`)
+      .get(cloudThreadId);
+    return row ? toThreadSummary(row) : null;
+  }
+
+  listThreads(input: ListThreadsInput = {}): ThreadSummary[] {
+    const clauses: string[] = [];
+    const params: unknown[] = [];
+    if (input.runnerId) {
+      clauses.push("runner_id = ?");
+      params.push(input.runnerId);
+    }
+    if (input.projectId) {
+      clauses.push("project_id = ?");
+      params.push(input.projectId);
+    }
+    const limit = Math.min(Math.max(input.limit ?? 100, 1), 500);
+    params.push(limit);
+    const where = clauses.length > 0 ? `WHERE ${clauses.join(" AND ")}` : "";
+    const rows = this.raw
+      .prepare(
+        `SELECT * FROM threads
+         ${where}
+         ORDER BY updated_at DESC
+         LIMIT ?`,
+      )
+      .all(...params);
+    return rows.map(toThreadSummary);
+  }
+
+  createRunnerCommand(input: CreateRunnerCommandInput): void {
+    this.raw
+      .prepare(
+        `INSERT INTO runner_commands (
+          command_id, runner_id, cloud_thread_id, command_type, status, payload_json,
+          created_at, updated_at
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+      )
+      .run(
+        input.commandId,
+        input.runnerId,
+        input.cloudThreadId,
+        input.commandType,
+        input.status,
+        json(input.payload),
+        input.createdAt,
+        input.createdAt,
+      );
+  }
+
+  updateRunnerCommandStatus(input: {
+    readonly commandId: string;
+    readonly status: string;
+    readonly updatedAt: string;
+  }): void {
+    this.raw
+      .prepare(
+        `UPDATE runner_commands
+         SET status = ?, updated_at = ?
+         WHERE command_id = ?`,
+      )
+      .run(input.status, input.updatedAt, input.commandId);
+  }
+
+  upsertPendingApproval(input: UpsertPendingApprovalInput): PendingApprovalSummary {
+    this.raw
+      .prepare(
+        `INSERT INTO pending_approvals (
+          approval_id, runner_id, cloud_thread_id, project_id, approval_type, status,
+          payload_json, created_at
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        ON CONFLICT(approval_id) DO UPDATE SET
+          status = excluded.status,
+          payload_json = excluded.payload_json`,
+      )
+      .run(
+        input.approvalId,
+        input.runnerId,
+        input.cloudThreadId,
+        input.projectId,
+        input.approvalType,
+        input.status,
+        json(input.payload),
+        input.createdAt,
+      );
+    const approval = this.getApproval(input.approvalId);
+    if (!approval) {
+      throw new Error(`Failed to upsert approval ${input.approvalId}.`);
+    }
+    return approval;
+  }
+
+  resolvePendingApproval(input: ResolvePendingApprovalInput): PendingApprovalSummary | null {
+    this.raw
+      .prepare(
+        `UPDATE pending_approvals
+         SET status = ?, decision = ?, resolved_at = ?
+         WHERE approval_id = ?`,
+      )
+      .run(input.status, input.decision, input.resolvedAt, input.approvalId);
+    return this.getApproval(input.approvalId);
+  }
+
+  getApproval(approvalId: string): PendingApprovalSummary | null {
+    const row = this.raw
+      .prepare(`SELECT * FROM pending_approvals WHERE approval_id = ?`)
+      .get(approvalId);
+    return row ? toPendingApprovalSummary(row) : null;
+  }
+
+  listApprovals(input: {
+    readonly status?: ApprovalStatus;
+    readonly threadId?: string;
+  } = {}): PendingApprovalSummary[] {
+    const clauses: string[] = [];
+    const params: unknown[] = [];
+    if (input.status) {
+      clauses.push("status = ?");
+      params.push(input.status);
+    }
+    if (input.threadId) {
+      clauses.push("cloud_thread_id = ?");
+      params.push(input.threadId);
+    }
+    const where = clauses.length > 0 ? `WHERE ${clauses.join(" AND ")}` : "";
+    const rows = this.raw
+      .prepare(
+        `SELECT * FROM pending_approvals
+         ${where}
+         ORDER BY created_at DESC
+         LIMIT 200`,
+      )
+      .all(...params);
+    return rows.map(toPendingApprovalSummary);
+  }
+
+  createUpload(input: CreateUploadInput): HandoffUploadRow {
+    this.raw
+      .prepare(
+        `INSERT INTO handoff_uploads (
+          upload_id, runner_id, project_id, actor_device_id, status, file_path,
+          total_bytes, expected_sha256, manifest_json, handoff_prompt, created_at
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      )
+      .run(
+        input.uploadId,
+        input.runnerId,
+        input.projectId,
+        input.actorDeviceId,
+        input.status,
+        input.filePath,
+        input.totalBytes,
+        input.expectedSha256 ?? null,
+        json(input.manifest),
+        input.handoffPrompt ?? null,
+        input.createdAt,
+      );
+    const upload = this.getUpload(input.uploadId);
+    if (!upload) {
+      throw new Error(`Failed to create upload ${input.uploadId}.`);
+    }
+    return upload;
+  }
+
+  getUpload(uploadId: string): HandoffUploadRow | null {
+    const row = this.raw
+      .prepare(`SELECT * FROM handoff_uploads WHERE upload_id = ?`)
+      .get(uploadId);
+    return row ? toHandoffUploadRow(row) : null;
+  }
+
+  addUploadBytes(input: { readonly uploadId: string; readonly bytes: number }): HandoffUploadRow | null {
+    this.raw
+      .prepare(
+        `UPDATE handoff_uploads
+         SET received_bytes = received_bytes + ?
+         WHERE upload_id = ?`,
+      )
+      .run(input.bytes, input.uploadId);
+    return this.getUpload(input.uploadId);
+  }
+
+  markUploadCompleted(input: {
+    readonly uploadId: string;
+    readonly actualSha256: string;
+    readonly handoffPrompt: string;
+    readonly commandId: string;
+    readonly completedAt: string;
+  }): HandoffUploadRow | null {
+    this.raw
+      .prepare(
+        `UPDATE handoff_uploads
+         SET status = 'complete',
+             actual_sha256 = ?,
+             handoff_prompt = ?,
+             command_id = ?,
+             completed_at = ?
+         WHERE upload_id = ?`,
+      )
+      .run(
+        input.actualSha256,
+        input.handoffPrompt,
+        input.commandId,
+        input.completedAt,
+        input.uploadId,
+      );
+    return this.getUpload(input.uploadId);
+  }
+
+  markUploadUnpacked(input: {
+    readonly uploadId: string;
+    readonly cloudThreadId: string;
+    readonly unpackedAt: string;
+  }): HandoffUploadRow | null {
+    this.raw
+      .prepare(
+        `UPDATE handoff_uploads
+         SET status = 'unpacked',
+             cloud_thread_id = ?,
+             unpacked_at = ?
+         WHERE upload_id = ?`,
+      )
+      .run(input.cloudThreadId, input.unpackedAt, input.uploadId);
+    return this.getUpload(input.uploadId);
   }
 
   listEvents(input: ListEventsInput = {}): CloudEvent[] {
