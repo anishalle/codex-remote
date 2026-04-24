@@ -11,7 +11,7 @@ import type { KnownEnvironment } from "@t3tools/client-runtime";
 import type { WsRpcClient } from "~/rpc/wsRpcClient";
 
 export interface EnvironmentConnection {
-  readonly kind: "primary" | "saved";
+  readonly kind: "primary" | "saved" | "bridged";
   readonly environmentId: EnvironmentId;
   readonly knownEnvironment: KnownEnvironment;
   readonly client: WsRpcClient;
@@ -33,7 +33,7 @@ interface OrchestrationHandlers {
 }
 
 interface EnvironmentConnectionInput extends OrchestrationHandlers {
-  readonly kind: "primary" | "saved";
+  readonly kind: "primary" | "saved" | "bridged";
   readonly knownEnvironment: KnownEnvironment;
   readonly client: WsRpcClient;
   readonly refreshMetadata?: () => Promise<void>;

@@ -186,6 +186,13 @@ export function getEnvironmentHttpBaseUrl(environmentId: EnvironmentId): string 
     return getKnownEnvironmentHttpBaseUrl(primaryEnvironment);
   }
 
+  const runtimeState = useSavedEnvironmentRuntimeStore.getState().byId[environmentId];
+  if (runtimeState?.descriptor?.origin === "local" && typeof window !== "undefined") {
+    const url = new URL(window.location.origin);
+    url.searchParams.set("bridgeEnvironmentId", environmentId);
+    return url.toString();
+  }
+
   return getSavedEnvironmentRecord(environmentId)?.httpBaseUrl ?? null;
 }
 
@@ -202,7 +209,11 @@ export function resolveEnvironmentHttpUrl(input: {
   const url = new URL(httpBaseUrl);
   url.pathname = input.pathname;
   if (input.searchParams) {
-    url.search = new URLSearchParams(input.searchParams).toString();
+    const params = new URLSearchParams(url.search);
+    for (const [key, value] of Object.entries(input.searchParams)) {
+      params.set(key, value);
+    }
+    url.search = params.toString();
   }
   return url.toString();
 }

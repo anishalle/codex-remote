@@ -64,6 +64,14 @@ import {
   authSessionRouteLayer,
   authWebSocketTokenRouteLayer,
 } from "./auth/http.ts";
+import {
+  localBridgePollRouteLayer,
+  localBridgeRegisterRouteLayer,
+  localBridgeResponseRouteLayer,
+  localBridgeStreamRouteLayer,
+} from "./bridge/http.ts";
+import { LocalBridgeClientLive } from "./bridge/LocalBridgeRuntime.ts";
+import { LocalBridgeRegistryLive } from "./bridge/LocalBridgeRegistry.ts";
 import { ServerSecretStoreLive } from "./auth/Layers/ServerSecretStore.ts";
 import { ServerAuthLive } from "./auth/Layers/ServerAuth.ts";
 import { OrchestrationLayerLive } from "./orchestration/runtimeLayer.ts";
@@ -244,6 +252,7 @@ const RuntimeDependenciesLive = ReactorLayerLive.pipe(
   Layer.provideMerge(AnalyticsServiceLayerLive),
   Layer.provideMerge(OpenLive),
   Layer.provideMerge(ServerLifecycleEventsLive),
+  Layer.provideMerge(LocalBridgeRegistryLive),
   Layer.provide(NetService.layer),
 );
 
@@ -262,6 +271,10 @@ export const makeRoutesLayer = Layer.mergeAll(
   authPairingCredentialRouteLayer,
   authSessionRouteLayer,
   authWebSocketTokenRouteLayer,
+  localBridgeRegisterRouteLayer,
+  localBridgePollRouteLayer,
+  localBridgeResponseRouteLayer,
+  localBridgeStreamRouteLayer,
   attachmentsRouteLayer,
   orchestrationDispatchRouteLayer,
   orchestrationSnapshotRouteLayer,
@@ -313,6 +326,7 @@ export const makeServerLayer = Layer.unwrap(
       }),
       httpListeningLayer,
       runtimeStateLayer,
+      LocalBridgeClientLive,
     );
 
     return serverApplicationLayer.pipe(

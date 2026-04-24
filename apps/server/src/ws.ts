@@ -3,6 +3,7 @@ import {
   type AuthAccessStreamEvent,
   AuthSessionId,
   CommandId,
+  type EnvironmentId,
   EventId,
   type OrchestrationCommand,
   type GitActionProgressEvent,
@@ -63,6 +64,8 @@ import {
   type SessionCredentialChange,
 } from "./auth/Services/SessionCredentialService.ts";
 import { respondToAuthError } from "./auth/http.ts";
+import { LocalBridgeRegistry } from "./bridge/LocalBridgeRegistry.ts";
+import { makeBridgeWsRpcLayer } from "./bridge/rpcProxy.ts";
 
 function isThreadDetailEvent(event: OrchestrationEvent): event is Extract<
   OrchestrationEvent,
@@ -153,6 +156,7 @@ const makeWsRpcLayer = (currentSessionId: AuthSessionId) =>
       const serverAuth = yield* ServerAuth;
       const bootstrapCredentials = yield* BootstrapCredentialService;
       const sessions = yield* SessionCredentialService;
+      const localBridgeRegistry = yield* LocalBridgeRegistry;
       const serverCommandId = (tag: string) =>
         CommandId.make(`server:${tag}:${crypto.randomUUID()}`);
 
@@ -515,6 +519,7 @@ const makeWsRpcLayer = (currentSessionId: AuthSessionId) =>
         const settings = yield* serverSettings.getSettings;
         const environment = yield* serverEnvironment.getDescriptor;
         const auth = yield* serverAuth.getDescriptor();
+        const bridgedEnvironments = yield* localBridgeRegistry.list;
 
         return {
           environment,
@@ -536,6 +541,7 @@ const makeWsRpcLayer = (currentSessionId: AuthSessionId) =>
             otlpMetricsEnabled: config.otlpMetricsUrl !== undefined,
           },
           settings,
+          bridgedEnvironments,
         };
       });
 
@@ -982,6 +988,13 @@ const makeWsRpcLayer = (currentSessionId: AuthSessionId) =>
                   payload: { settings },
                 })),
               );
+              const bridgedEnvironmentUpdates = localBridgeRegistry.streamChanges.pipe(
+                Stream.map((bridgedEnvironments) => ({
+                  version: 1 as const,
+                  type: "bridgedEnvironmentsUpdated" as const,
+                  payload: { bridgedEnvironments },
+                })),
+              );
 
               yield* Effect.all(
                 [providerRegistry.refresh("codex"), providerRegistry.refresh("claudeAgent")],
@@ -992,7 +1005,7 @@ const makeWsRpcLayer = (currentSessionId: AuthSessionId) =>
               ).pipe(Effect.ignoreCause({ log: true }), Effect.forkScoped);
 
               const liveUpdates = Stream.merge(
-                keybindingsUpdates,
+                Stream.merge(keybindingsUpdates, bridgedEnvironmentUpdates),
                 Stream.merge(providerStatuses, settingsUpdates),
               );
 
@@ -1068,6 +1081,32 @@ export const websocketRpcRouteLayer = Layer.unwrap(
         const serverAuth = yield* ServerAuth;
         const sessions = yield* SessionCredentialService;
         const session = yield* serverAuth.authenticateWebSocketUpgrade(request);
+        const requestUrl = HttpServerRequest.toURL(request);
+        const bridgeEnvironmentId =
+          Option.isSome(requestUrl) && requestUrl.value.searchParams.has("bridgeEnvironmentId")
+            ? requestUrl.value.searchParams.get("bridgeEnvironmentId")
+            : null;
+        if (bridgeEnvironmentId && bridgeEnvironmentId.trim().length > 0) {
+          const rpcWebSocketHttpEffect = yield* RpcServer.toHttpEffectWebsocket(WsRpcGroup, {
+            spanPrefix: "ws.rpc.bridge",
+            spanAttributes: {
+              "rpc.transport": "websocket",
+              "rpc.system": "effect-rpc",
+              "rpc.bridge.environment_id": bridgeEnvironmentId,
+            },
+          }).pipe(
+            Effect.provide(
+              makeBridgeWsRpcLayer(bridgeEnvironmentId as EnvironmentId).pipe(
+                Layer.provideMerge(RpcSerialization.layerJson),
+              ),
+            ),
+          );
+          return yield* Effect.acquireUseRelease(
+            sessions.markConnected(session.sessionId),
+            () => rpcWebSocketHttpEffect,
+            () => sessions.markDisconnected(session.sessionId),
+          );
+        }
         const rpcWebSocketHttpEffect = yield* RpcServer.toHttpEffectWebsocket(WsRpcGroup, {
           spanPrefix: "ws.rpc",
           spanAttributes: {

@@ -1,7 +1,7 @@
 import { defineConfig } from "tsdown";
 
 export default defineConfig({
-  entry: ["src/bin.ts"],
+  entry: ["src/bin.ts", "src/t3r.ts"],
   format: ["esm", "cjs"],
   checks: {
     legacyCjs: false,

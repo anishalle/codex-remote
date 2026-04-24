@@ -116,6 +116,12 @@ export const ServerObservability = Schema.Struct({
 });
 export type ServerObservability = typeof ServerObservability.Type;
 
+export const ServerBridgedEnvironment = Schema.Struct({
+  environment: ExecutionEnvironmentDescriptor,
+  connectedAt: IsoDateTime,
+});
+export type ServerBridgedEnvironment = typeof ServerBridgedEnvironment.Type;
+
 export const ServerConfig = Schema.Struct({
   environment: ExecutionEnvironmentDescriptor,
   auth: ServerAuthDescriptor,
@@ -127,6 +133,7 @@ export const ServerConfig = Schema.Struct({
   availableEditors: Schema.Array(EditorId),
   observability: ServerObservability,
   settings: ServerSettings,
+  bridgedEnvironments: Schema.optionalKey(Schema.Array(ServerBridgedEnvironment)),
 });
 export type ServerConfig = typeof ServerConfig.Type;
 
@@ -162,6 +169,12 @@ export const ServerConfigSettingsUpdatedPayload = Schema.Struct({
 });
 export type ServerConfigSettingsUpdatedPayload = typeof ServerConfigSettingsUpdatedPayload.Type;
 
+export const ServerConfigBridgedEnvironmentsUpdatedPayload = Schema.Struct({
+  bridgedEnvironments: Schema.Array(ServerBridgedEnvironment),
+});
+export type ServerConfigBridgedEnvironmentsUpdatedPayload =
+  typeof ServerConfigBridgedEnvironmentsUpdatedPayload.Type;
+
 export const ServerConfigStreamSnapshotEvent = Schema.Struct({
   version: Schema.Literal(1),
   type: Schema.Literal("snapshot"),
@@ -193,11 +206,20 @@ export const ServerConfigStreamSettingsUpdatedEvent = Schema.Struct({
 export type ServerConfigStreamSettingsUpdatedEvent =
   typeof ServerConfigStreamSettingsUpdatedEvent.Type;
 
+export const ServerConfigStreamBridgedEnvironmentsUpdatedEvent = Schema.Struct({
+  version: Schema.Literal(1),
+  type: Schema.Literal("bridgedEnvironmentsUpdated"),
+  payload: ServerConfigBridgedEnvironmentsUpdatedPayload,
+});
+export type ServerConfigStreamBridgedEnvironmentsUpdatedEvent =
+  typeof ServerConfigStreamBridgedEnvironmentsUpdatedEvent.Type;
+
 export const ServerConfigStreamEvent = Schema.Union([
   ServerConfigStreamSnapshotEvent,
   ServerConfigStreamKeybindingsUpdatedEvent,
   ServerConfigStreamProviderStatusesEvent,
   ServerConfigStreamSettingsUpdatedEvent,
+  ServerConfigStreamBridgedEnvironmentsUpdatedEvent,
 ]);
 export type ServerConfigStreamEvent = typeof ServerConfigStreamEvent.Type;
 

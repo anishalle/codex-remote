@@ -925,6 +925,13 @@ const SidebarProjectItem = memo(function SidebarProjectItem(props: SidebarProjec
   const defaultThreadEnvMode = useSettings<ThreadEnvMode>(
     (settings) => settings.defaultThreadEnvMode,
   );
+  const hasLocalEnvironment = useSavedEnvironmentRuntimeStore(
+    useShallow((state) =>
+      project.memberProjects.some(
+        (member) => state.byId[member.environmentId]?.descriptor?.origin === "local",
+      ),
+    ),
+  );
   const projectGroupingSettings = useSettings((settings) => ({
     sidebarProjectGroupingMode: settings.sidebarProjectGroupingMode,
     sidebarProjectGroupingOverrides: settings.sidebarProjectGroupingOverrides,
@@ -1986,6 +1993,11 @@ const SidebarProjectItem = memo(function SidebarProjectItem(props: SidebarProjec
             <span className="truncate text-xs font-medium text-foreground/90">
               {project.displayName}
             </span>
+            {hasLocalEnvironment ? (
+              <span className="shrink-0 rounded-full bg-blue-500/12 px-1.5 py-0.5 text-[9px] font-medium leading-none text-blue-500">
+                local
+              </span>
+            ) : null}
             {project.groupedProjectCount > 1 ? (
               <span className="shrink-0 text-[10px] text-muted-foreground/60">
                 {project.groupedProjectCount} projects

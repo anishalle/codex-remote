@@ -80,6 +80,10 @@ const BootstrapEnvelopeSchema = Schema.Struct({
   logWebSocketEvents: Schema.optional(Schema.Boolean),
   otlpTracesUrl: Schema.optional(Schema.String),
   otlpMetricsUrl: Schema.optional(Schema.String),
+  bridgeUrl: Schema.optional(Schema.String),
+  bridgeTokenFile: Schema.optional(Schema.String),
+  bridgeBearerToken: Schema.optional(Schema.String),
+  bridgePairingToken: Schema.optional(Schema.String),
 });
 
 const modeFlag = Flag.choice("mode", RuntimeMode.literals).pipe(
@@ -124,6 +128,22 @@ const logWebSocketEventsFlag = Flag.boolean("log-websocket-events").pipe(
     "Emit server-side logs for outbound WebSocket push traffic (equivalent to T3CODE_LOG_WS_EVENTS).",
   ),
   Flag.withAlias("log-ws-events"),
+  Flag.optional,
+);
+const bridgeUrlFlag = Flag.string("bridge-url").pipe(
+  Flag.withDescription("Public T3 server URL to bridge this local machine into."),
+  Flag.optional,
+);
+const bridgeTokenFileFlag = Flag.string("bridge-token-file").pipe(
+  Flag.withDescription("Path to a bearer session token for the public bridge server."),
+  Flag.optional,
+);
+const bridgeBearerTokenFlag = Flag.string("bridge-bearer-token").pipe(
+  Flag.withDescription("Bearer session token for the public bridge server."),
+  Flag.optional,
+);
+const bridgePairingTokenFlag = Flag.string("bridge-pairing-token").pipe(
+  Flag.withDescription("One-time pairing token used to create a bridge bearer session."),
   Flag.optional,
 );
 
@@ -174,9 +194,25 @@ const EnvServerConfig = Config.all({
     Config.option,
     Config.map(Option.getOrUndefined),
   ),
+  bridgeUrl: Config.string("T3CODE_BRIDGE_URL").pipe(
+    Config.option,
+    Config.map(Option.getOrUndefined),
+  ),
+  bridgeTokenFile: Config.string("T3CODE_BRIDGE_TOKEN_FILE").pipe(
+    Config.option,
+    Config.map(Option.getOrUndefined),
+  ),
+  bridgeBearerToken: Config.string("T3CODE_BRIDGE_BEARER_TOKEN").pipe(
+    Config.option,
+    Config.map(Option.getOrUndefined),
+  ),
+  bridgePairingToken: Config.string("T3CODE_BRIDGE_PAIRING_TOKEN").pipe(
+    Config.option,
+    Config.map(Option.getOrUndefined),
+  ),
 });
 
-interface CliServerFlags {
+export interface CliServerFlags {
   readonly mode: Option.Option<RuntimeMode>;
   readonly port: Option.Option<number>;
   readonly host: Option.Option<string>;
@@ -187,6 +223,10 @@ interface CliServerFlags {
   readonly bootstrapFd: Option.Option<number>;
   readonly autoBootstrapProjectFromCwd: Option.Option<boolean>;
   readonly logWebSocketEvents: Option.Option<boolean>;
+  readonly bridgeUrl?: Option.Option<string>;
+  readonly bridgeTokenFile?: Option.Option<string>;
+  readonly bridgeBearerToken?: Option.Option<string>;
+  readonly bridgePairingToken?: Option.Option<string>;
 }
 
 interface CliAuthLocationFlags {
@@ -233,6 +273,10 @@ export const resolveServerConfig = (
       bootstrapFd: flags.bootstrapFd ?? Option.none(),
       autoBootstrapProjectFromCwd: flags.autoBootstrapProjectFromCwd ?? Option.none(),
       logWebSocketEvents: flags.logWebSocketEvents ?? Option.none(),
+      bridgeUrl: flags.bridgeUrl ?? Option.none(),
+      bridgeTokenFile: flags.bridgeTokenFile ?? Option.none(),
+      bridgeBearerToken: flags.bridgeBearerToken ?? Option.none(),
+      bridgePairingToken: flags.bridgePairingToken ?? Option.none(),
     } satisfies CliServerFlags;
     const bootstrapFd = Option.getOrUndefined(normalizedFlags.bootstrapFd) ?? env.bootstrapFd;
     const bootstrapEnvelope =
@@ -333,6 +377,74 @@ export const resolveServerConfig = (
       () => (mode === "desktop" ? "127.0.0.1" : undefined),
     );
     const logLevel = Option.getOrElse(cliLogLevel, () => env.logLevel);
+    const bridgeUrl = Option.getOrUndefined(
+      resolveOptionPrecedence(
+        normalizedFlags.bridgeUrl,
+        Option.fromUndefinedOr(env.bridgeUrl),
+        Option.fromUndefinedOr(bootstrap?.bridgeUrl),
+      ),
+    );
+    const localBridge =
+      bridgeUrl && bridgeUrl.trim().length > 0
+        ? {
+            publicHttpBaseUrl: new URL(bridgeUrl).toString(),
+            ...(Option.getOrUndefined(
+              resolveOptionPrecedence(
+                normalizedFlags.bridgeBearerToken,
+                Option.fromUndefinedOr(env.bridgeBearerToken),
+                Option.fromUndefinedOr(bootstrap?.bridgeBearerToken),
+              ),
+            )
+              ? {
+                  bearerToken: Option.getOrUndefined(
+                    resolveOptionPrecedence(
+                      normalizedFlags.bridgeBearerToken,
+                      Option.fromUndefinedOr(env.bridgeBearerToken),
+                      Option.fromUndefinedOr(bootstrap?.bridgeBearerToken),
+                    ),
+                  )!,
+                }
+              : {}),
+            ...(Option.getOrUndefined(
+              resolveOptionPrecedence(
+                normalizedFlags.bridgePairingToken,
+                Option.fromUndefinedOr(env.bridgePairingToken),
+                Option.fromUndefinedOr(bootstrap?.bridgePairingToken),
+              ),
+            )
+              ? {
+                  pairingToken: Option.getOrUndefined(
+                    resolveOptionPrecedence(
+                      normalizedFlags.bridgePairingToken,
+                      Option.fromUndefinedOr(env.bridgePairingToken),
+                      Option.fromUndefinedOr(bootstrap?.bridgePairingToken),
+                    ),
+                  )!,
+                }
+              : {}),
+            ...(Option.getOrUndefined(
+              resolveOptionPrecedence(
+                normalizedFlags.bridgeTokenFile,
+                Option.fromUndefinedOr(env.bridgeTokenFile),
+                Option.fromUndefinedOr(bootstrap?.bridgeTokenFile),
+              ),
+            )
+              ? {
+                  tokenFile: path.resolve(
+                    yield* expandHomePath(
+                      Option.getOrUndefined(
+                        resolveOptionPrecedence(
+                          normalizedFlags.bridgeTokenFile,
+                          Option.fromUndefinedOr(env.bridgeTokenFile),
+                          Option.fromUndefinedOr(bootstrap?.bridgeTokenFile),
+                        ),
+                      )!,
+                    ),
+                  ),
+                }
+              : {}),
+          }
+        : undefined;
 
     const config: ServerConfigShape = {
       logLevel,
@@ -365,6 +477,7 @@ export const resolveServerConfig = (
       desktopBootstrapToken,
       autoBootstrapProjectFromCwd,
       logWebSocketEvents,
+      localBridge,
     };
 
     return config;
@@ -386,6 +499,10 @@ const resolveCliAuthConfig = (
       bootstrapFd: Option.none(),
       autoBootstrapProjectFromCwd: Option.none(),
       logWebSocketEvents: Option.none(),
+      bridgeUrl: Option.none(),
+      bridgeTokenFile: Option.none(),
+      bridgeBearerToken: Option.none(),
+      bridgePairingToken: Option.none(),
     },
     cliLogLevel,
   );
@@ -766,6 +883,10 @@ const sharedServerCommandFlags = {
   bootstrapFd: bootstrapFdFlag,
   autoBootstrapProjectFromCwd: autoBootstrapProjectFromCwdFlag,
   logWebSocketEvents: logWebSocketEventsFlag,
+  bridgeUrl: bridgeUrlFlag,
+  bridgeTokenFile: bridgeTokenFileFlag,
+  bridgeBearerToken: bridgeBearerTokenFlag,
+  bridgePairingToken: bridgePairingTokenFlag,
 } as const;
 
 const authLocationFlags = sharedServerLocationFlags;

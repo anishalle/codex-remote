@@ -111,6 +111,10 @@ export function applyServerConfigEvent(event: ServerConfigStreamEvent): void {
       applySettingsUpdated(event.payload.settings);
       return;
     }
+    case "bridgedEnvironmentsUpdated": {
+      applyBridgedEnvironmentsUpdated(event.payload.bridgedEnvironments);
+      return;
+    }
   }
 }
 
@@ -144,6 +148,20 @@ export function applySettingsUpdated(settings: ServerSettings): void {
   emitServerConfigUpdated(toServerConfigUpdatedPayload(nextConfig), "settingsUpdated");
 }
 
+export function applyBridgedEnvironmentsUpdated(
+  bridgedEnvironments: NonNullable<ServerConfig["bridgedEnvironments"]>,
+): void {
+  const latestServerConfig = getServerConfig();
+  if (!latestServerConfig) {
+    return;
+  }
+
+  resolveServerConfig({
+    ...latestServerConfig,
+    bridgedEnvironments,
+  });
+}
+
 export function emitWelcome(payload: ServerLifecycleWelcomePayload): void {
   appAtomRegistry.set(welcomeAtom, payload);
 }
@@ -158,6 +176,10 @@ export function onServerConfigUpdated(
   return subscribeLatest(serverConfigUpdatedAtom, (notification) => {
     listener(notification.payload, notification.source);
   });
+}
+
+export function onServerConfigChanged(listener: (config: ServerConfig) => void): () => void {
+  return subscribeLatest(serverConfigAtom, listener);
 }
 
 export function onProvidersUpdated(

@@ -4,6 +4,7 @@ import {
   type OrchestrationEvent,
   type OrchestrationShellSnapshot,
   type OrchestrationShellStreamEvent,
+  type ServerBridgedEnvironment,
   type ServerConfig,
   type TerminalEvent,
   ThreadId,
@@ -66,6 +67,7 @@ import {
   derivePhysicalProjectKey,
 } from "../../logicalProject";
 import { getClientSettings } from "~/hooks/useSettings";
+import { getServerConfig, onServerConfigChanged } from "~/rpc/serverState";
 
 type EnvironmentServiceState = {
   readonly queryClient: QueryClient;
@@ -837,6 +839,46 @@ function createSavedEnvironmentClient(
   );
 }
 
+function createBridgedEnvironmentUrls(environmentId: EnvironmentId): {
+  readonly httpBaseUrl: string;
+  readonly wsBaseUrl: string;
+} {
+  const httpUrl = new URL(window.location.origin);
+  httpUrl.searchParams.set("bridgeEnvironmentId", environmentId);
+  const wsUrl = new URL(httpUrl.toString());
+  wsUrl.protocol = wsUrl.protocol === "https:" ? "wss:" : "ws:";
+  return {
+    httpBaseUrl: httpUrl.toString(),
+    wsBaseUrl: wsUrl.toString(),
+  };
+}
+
+function createBridgedEnvironmentClient(record: ServerBridgedEnvironment): WsRpcClient {
+  useSavedEnvironmentRuntimeStore.getState().ensure(record.environment.environmentId);
+  const { wsBaseUrl } = createBridgedEnvironmentUrls(record.environment.environmentId);
+
+  return createWsRpcClient(
+    new WsTransport(wsBaseUrl, {
+      onAttempt: () => {
+        setRuntimeConnecting(record.environment.environmentId);
+      },
+      onOpen: () => {
+        setRuntimeConnected(record.environment.environmentId);
+      },
+      onError: (message: string) => {
+        useSavedEnvironmentRuntimeStore.getState().patch(record.environment.environmentId, {
+          connectionState: "error",
+          lastError: message,
+          lastErrorAt: isoNow(),
+        });
+      },
+      onClose: (details: { readonly code: number; readonly reason: string }) => {
+        setRuntimeDisconnected(record.environment.environmentId, details.reason);
+      },
+    }),
+  );
+}
+
 async function refreshSavedEnvironmentMetadata(
   record: SavedEnvironmentRecord,
   bearerToken: string,
@@ -857,6 +899,30 @@ async function refreshSavedEnvironmentMetadata(
     descriptor: serverConfig.environment,
     serverConfig,
     role: sessionState.authenticated ? (sessionState.role ?? roleHint ?? null) : null,
+  });
+}
+
+async function refreshBridgedEnvironmentMetadata(
+  record: ServerBridgedEnvironment,
+  client: WsRpcClient,
+  configHint?: ServerConfig | null,
+): Promise<void> {
+  const serverConfig = configHint ? configHint : await client.server.getConfig();
+
+  useSavedEnvironmentRuntimeStore.getState().patch(record.environment.environmentId, {
+    authState: "authenticated",
+    descriptor: {
+      ...serverConfig.environment,
+      origin: "local",
+    },
+    serverConfig: {
+      ...serverConfig,
+      environment: {
+        ...serverConfig.environment,
+        origin: "local",
+      },
+    },
+    role: "owner",
   });
 }
 
@@ -998,6 +1064,92 @@ async function syncSavedEnvironmentConnections(
   );
   await Promise.all(
     records.map((record) => ensureSavedEnvironmentConnection(record).catch(() => undefined)),
+  );
+}
+
+async function ensureBridgedEnvironmentConnection(
+  record: ServerBridgedEnvironment,
+): Promise<EnvironmentConnection> {
+  const environmentId = record.environment.environmentId;
+  const existing = environmentConnections.get(environmentId);
+  if (existing) {
+    return existing;
+  }
+
+  const client = createBridgedEnvironmentClient(record);
+  const urls = createBridgedEnvironmentUrls(environmentId);
+  const knownEnvironment = createKnownEnvironment({
+    id: environmentId,
+    label: record.environment.label,
+    source: "manual",
+    target: urls,
+  });
+  const connection = createEnvironmentConnection({
+    kind: "bridged",
+    knownEnvironment: {
+      ...knownEnvironment,
+      environmentId,
+    },
+    client,
+    refreshMetadata: async () => {
+      await refreshBridgedEnvironmentMetadata(record, client);
+    },
+    onConfigSnapshot: (config) => {
+      useSavedEnvironmentRuntimeStore.getState().patch(environmentId, {
+        descriptor: {
+          ...config.environment,
+          origin: "local",
+        },
+        serverConfig: {
+          ...config,
+          environment: {
+            ...config.environment,
+            origin: "local",
+          },
+        },
+      });
+    },
+    onWelcome: (payload) => {
+      useSavedEnvironmentRuntimeStore.getState().patch(environmentId, {
+        descriptor: {
+          ...payload.environment,
+          origin: "local",
+        },
+      });
+    },
+    ...createEnvironmentConnectionHandlers(),
+  });
+
+  registerConnection(connection);
+  try {
+    await refreshBridgedEnvironmentMetadata(record, client);
+    return connection;
+  } catch (error) {
+    setRuntimeError(environmentId, error);
+    await removeConnection(environmentId).catch(() => false);
+    throw error;
+  }
+}
+
+async function syncBridgedEnvironmentConnections(
+  records: ReadonlyArray<ServerBridgedEnvironment>,
+): Promise<void> {
+  const expectedEnvironmentIds = new Set(
+    records.map((record) => record.environment.environmentId),
+  );
+  const staleEnvironmentIds = [...environmentConnections.values()]
+    .filter((connection) => connection.kind === "bridged")
+    .map((connection) => connection.environmentId)
+    .filter((environmentId) => !expectedEnvironmentIds.has(environmentId));
+
+  await Promise.all(
+    staleEnvironmentIds.map(async (environmentId) => {
+      useSavedEnvironmentRuntimeStore.getState().clear(environmentId);
+      await removeConnection(environmentId).catch(() => false);
+    }),
+  );
+  await Promise.all(
+    records.map((record) => ensureBridgedEnvironmentConnection(record).catch(() => undefined)),
   );
 }
 
@@ -1178,10 +1330,17 @@ export function startEnvironmentConnectionService(queryClient: QueryClient): () 
     }
     void syncSavedEnvironmentConnections(listSavedEnvironmentRecords());
   });
+  const unsubscribeBridgedEnvironments = onServerConfigChanged((config) => {
+    void syncBridgedEnvironmentConnections(config.bridgedEnvironments ?? []);
+  });
 
   void waitForSavedEnvironmentRegistryHydration()
     .then(() => syncSavedEnvironmentConnections(listSavedEnvironmentRecords()))
     .catch(() => undefined);
+  const currentServerConfig = getServerConfig();
+  if (currentServerConfig) {
+    void syncBridgedEnvironmentConnections(currentServerConfig.bridgedEnvironments ?? []);
+  }
 
   activeService = {
     queryClient,
@@ -1189,6 +1348,7 @@ export function startEnvironmentConnectionService(queryClient: QueryClient): () 
     refCount: 1,
     stop: () => {
       unsubscribeSavedEnvironments();
+      unsubscribeBridgedEnvironments();
       queryInvalidationThrottler.cancel();
     },
   };
