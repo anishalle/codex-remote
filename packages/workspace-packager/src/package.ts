@@ -151,7 +151,12 @@ function verifyGitBundle(bundle: Buffer): void {
   try {
     const bundlePath = join(tmp, "workspace.bundle");
     writeFileSync(bundlePath, bundle, { mode: 0o600 });
+    execFileSync("git", ["init"], {
+      cwd: tmp,
+      stdio: ["ignore", "pipe", "pipe"],
+    });
     execFileSync("git", ["bundle", "verify", bundlePath], {
+      cwd: tmp,
       stdio: ["ignore", "pipe", "pipe"],
     });
   } finally {

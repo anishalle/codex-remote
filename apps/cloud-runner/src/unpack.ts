@@ -46,7 +46,12 @@ export async function unpackHandoffWorkspace(input: {
     writeFileSync(bundlePath, Buffer.from(inspected.handoffPackage.gitBundleBase64, "base64"), {
       mode: 0o600,
     });
+    execFileSync("git", ["init"], {
+      cwd: tmp,
+      stdio: ["ignore", "pipe", "pipe"],
+    });
     execFileSync("git", ["bundle", "verify", bundlePath], {
+      cwd: tmp,
       stdio: ["ignore", "pipe", "pipe"],
     });
     execFileSync("git", ["clone", bundlePath, targetPath], {
