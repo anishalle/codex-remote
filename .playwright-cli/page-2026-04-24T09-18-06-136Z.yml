@@ -1,0 +1,231 @@
+- generic [ref=e1]:
+  - generic [ref=e14]:
+    - generic [ref=e17]:
+      - link "Go to threads" [ref=e20] [cursor=pointer]:
+        - /url: /
+        - img "T3" [ref=e21]
+        - generic [ref=e23]: Code
+        - generic [ref=e24]: Alpha
+      - generic [ref=e26]:
+        - list [ref=e28]:
+          - listitem [ref=e29]:
+            - button "Search ⌘K" [ref=e30] [cursor=pointer]:
+              - img [ref=e31]
+              - generic [ref=e34]: Search
+              - generic: ⌘K
+        - generic [ref=e35]:
+          - generic [ref=e36]:
+            - generic [ref=e37]: Projects
+            - generic [ref=e38]:
+              - button [ref=e39] [cursor=pointer]:
+                - img [ref=e40]
+              - button "Add project" [ref=e43] [cursor=pointer]:
+                - img [ref=e44]
+          - list [ref=e45]:
+            - listitem [ref=e46]:
+              - generic [ref=e47]:
+                - button "anishalle/codex-remote local 2 projects" [ref=e48] [cursor=pointer]:
+                  - img [ref=e49]
+                  - generic [ref=e51]:
+                    - generic [ref=e52]: anishalle/codex-remote
+                    - generic [ref=e53]: local
+                    - generic [ref=e54]: 2 projects
+                - generic:
+                  - button "Create new thread in anishalle/codex-remote":
+                    - img
+              - list [ref=e55]:
+                - listitem [ref=e56]:
+                  - button "okay, we are in the t3 branch, which is a 1:1 representation of t3code (it's li Archive okay, we are in the t3 branch, which is a 1:1 representation of t3code (it's li Anish’s MacBook Pro 14m ago" [ref=e57] [cursor=pointer]:
+                    - generic [ref=e59]: okay, we are in the t3 branch, which is a 1:1 representation of t3code (it's li
+                    - generic [ref=e61]:
+                      - button "Archive okay, we are in the t3 branch, which is a 1:1 representation of t3code (it's li" [ref=e119]:
+                        - img [ref=e120]
+                      - generic:
+                        - generic:
+                          - generic "Anish’s MacBook Pro":
+                            - img
+                          - generic: 14m ago
+                - listitem [ref=e62]:
+                  - button "Reply with hi only Archive Reply with hi only Anish’s MacBook Pro 46m ago" [ref=e63] [cursor=pointer]:
+                    - generic [ref=e65]: Reply with hi only
+                    - generic [ref=e67]:
+                      - generic:
+                        - button "Archive Reply with hi only":
+                          - img
+                      - generic:
+                        - generic:
+                          - generic "Anish’s MacBook Pro":
+                            - img
+                          - generic: 46m ago
+                - listitem [ref=e68]:
+                  - button "Casual Greeting Archive Casual Greeting 2h ago" [ref=e69] [cursor=pointer]:
+                    - generic [ref=e71]: Casual Greeting
+                    - generic [ref=e73]:
+                      - generic:
+                        - button "Archive Casual Greeting":
+                          - img
+                      - generic:
+                        - generic:
+                          - generic: 2h ago
+            - listitem [ref=e74]:
+              - generic [ref=e75]:
+                - button "~ local" [ref=e76] [cursor=pointer]:
+                  - img [ref=e77]
+                  - generic [ref=e79]:
+                    - generic [ref=e80]: ~
+                    - generic [ref=e81]: local
+                - generic:
+                  - button "Create new thread in ~":
+                    - img
+              - list [ref=e82]:
+                - listitem [ref=e83]:
+                  - generic [ref=e85]: No threads yet
+      - separator [ref=e86]
+      - list [ref=e88]:
+        - listitem [ref=e89]:
+          - button "Settings" [ref=e90] [cursor=pointer]:
+            - img [ref=e91]
+            - generic [ref=e94]: Settings
+      - button "Resize Sidebar" [ref=e95]
+    - main [ref=e123]:
+      - generic [ref=e124]:
+        - generic [ref=e126]:
+          - generic [ref=e127]:
+            - heading "okay, we are in the t3 branch, which is a 1:1 representation of t3code (it's li" [level=2] [ref=e128]
+            - generic [ref=e130]: codex-remote
+          - generic [ref=e131]:
+            - button "Add action" [ref=e132] [cursor=pointer]:
+              - img
+              - generic [ref=e133]: Add action
+            - group "Subscription actions" [ref=e134]:
+              - button "Open" [disabled]:
+                - generic: Open
+              - separator
+              - button "Copy options" [ref=e135] [cursor=pointer]:
+                - img
+            - group "Git actions" [ref=e136]:
+              - button "Commit, push & PR" [ref=e137] [cursor=pointer]:
+                - img
+                - generic [ref=e138]: Commit, push & PR
+              - separator
+              - button "Git action options" [ref=e139] [cursor=pointer]:
+                - img
+            - button "Toggle terminal drawer" [ref=e140] [cursor=pointer]:
+              - img
+            - button "Toggle diff panel" [ref=e141] [cursor=pointer]:
+              - img
+        - generic [ref=e143]:
+          - generic [ref=e144]:
+            - generic [ref=e149]:
+              - generic [ref=e153]:
+                - paragraph [ref=e155]:
+                  - text: The built parser sees this exact CLI session as 141 importable chat messages, including the first long prompt and the latest assistant updates. I’m going to restart the local
+                  - code [ref=e156]: t3r
+                  - text: process with the rebuilt bundle so the bridge can backfill those rows into the server.
+                - paragraph [ref=e158]: 4:08:10 AM • 49s
+              - generic [ref=e162]:
+                - paragraph [ref=e164]: "Local verification is good: after restart, the imported thread has 142 message rows in the local T3 read model, with the first long user prompt as the first message. Next I’m going to check the public UI path, because that exercises the actual phone/server route through the bridge."
+                - paragraph [ref=e166]: 4:09:15 AM • 1m 5s
+              - generic [ref=e170]:
+                - paragraph [ref=e172]:
+                  - text: Using the
+                  - code [ref=e173]: playwright
+                  - text: skill now for the browser-level check. I’ve already verified the data plane locally; this check is just to confirm the visible server flow opens the imported thread with history.
+                - paragraph [ref=e175]: 4:09:18 AM • 2.7s
+              - generic [ref=e179]:
+                - paragraph [ref=e181]: Playwright hit the macOS browser sandbox on first launch. I’m rerunning the same browser check with the needed GUI permission so Chrome can start.
+                - paragraph [ref=e183]: 4:09:41 AM • 23s
+              - generic [ref=e187]:
+                - paragraph [ref=e189]:
+                  - text: Using the
+                  - code [ref=e190]: homelab
+                  - text: skill for the public-server check. The temp Playwright profile landed on the pairing page, so I need an owner browser session before I can validate the visible thread detail path.
+                - paragraph [ref=e192]: 4:10:08 AM • 27s
+              - generic [ref=e196]:
+                - paragraph [ref=e198]:
+                  - text: "The public UI check passed: from"
+                  - code [ref=e199]: https://codex.anishalle.com/
+                  - text: ", the imported"
+                  - code [ref=e200]: codex-cli
+                  - text: thread opens and the chat pane renders the backfilled timeline rows. I’m committing only the four source/test files; I’m leaving generated Playwright files,
+                  - code [ref=e201]: apps/server/dist
+                  - text: ", and the untracked docs file alone."
+                - paragraph [ref=e203]: 4:13:16 AM • 3m 8s
+              - generic [ref=e207]:
+                - paragraph [ref=e209]:
+                  - text: Committed and pushed
+                  - code [ref=e210]: afb142f5
+                  - text: to
+                  - code [ref=e211]: origin/t3
+                  - text: . I’m deploying the same branch on
+                  - code [ref=e212]: anishalle.com
+                  - text: now, then I’ll re-check the service health.
+                - paragraph [ref=e214]: 4:13:36 AM • 20s
+              - generic [ref=e218]:
+                - paragraph [ref=e220]: The remote Docker build is through dependency install and is rebuilding the web bundle now. After the container swaps I’ll confirm HTTP 200 and Docker health.
+                - paragraph [ref=e222]: 4:14:30 AM • 54s
+              - generic [ref=e226]:
+                - paragraph [ref=e228]: The production web bundle built successfully; Docker is exporting the new image now. The large chunk warnings are the existing Vite warnings, not from this backend-only patch.
+                - paragraph [ref=e230]: 4:15:04 AM • 34s
+              - generic [ref=e234]:
+                - paragraph [ref=e236]:
+                  - text: The image export finished and Compose is recreating the
+                  - code [ref=e237]: t3
+                  - text: container. There may be a brief reconnect/502 window while it swaps; I’ll wait for health before calling it done.
+                - generic [ref=e238]:
+                  - paragraph [ref=e239]: 4:16:18 AM • 1m 14s
+                  - button "Copy link" [ref=e241] [cursor=pointer]:
+                    - img
+            - button "Scroll to bottom" [ref=e244]:
+              - img [ref=e245]
+              - text: Scroll to bottom
+          - generic [ref=e250]:
+            - generic [ref=e252]:
+              - textbox [active] [ref=e253]:
+                - paragraph [ref=e254]
+              - generic: Ask anything, @tag files/folders, or use / to show available commands
+            - generic [ref=e255]:
+              - generic [ref=e256]:
+                - button "GPT-5.5" [ref=e257] [cursor=pointer]:
+                  - generic [ref=e258]:
+                    - img
+                    - generic [ref=e259]: GPT-5.5
+                    - img
+                - separator [ref=e260]
+                - button "Medium · Normal" [ref=e261] [cursor=pointer]:
+                  - generic [ref=e262]:
+                    - text: Medium · Normal
+                    - img
+                - separator [ref=e263]
+                - button "Build" [ref=e264] [cursor=pointer]:
+                  - img
+                  - generic [ref=e265]: Build
+                - separator [ref=e266]
+                - combobox "Runtime mode" [ref=e267] [cursor=pointer]:
+                  - img
+                  - generic [ref=e268]: Full access
+                  - generic [ref=e269]:
+                    - img
+                - textbox [ref=e270]: full-access
+              - generic [ref=e271]:
+                - button "Send message" [disabled]:
+                  - img
+          - generic [ref=e272]:
+            - generic [ref=e273]:
+              - generic [ref=e274]:
+                - img [ref=e275]
+                - text: Anish’s MacBook Pro
+              - separator [ref=e277]
+              - generic [ref=e278]:
+                - img [ref=e279]
+                - text: Local checkout
+            - combobox [ref=e281] [cursor=pointer]:
+              - generic [ref=e282]: t3
+              - img
+            - textbox [ref=e283]: t3
+    - generic [ref=e285]:
+      - button "Toggle Sidebar"
+  - generic:
+    - region "Notifications"
+  - generic:
+    - region "Notifications"
