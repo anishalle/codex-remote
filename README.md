@@ -21,9 +21,6 @@ Here's what we got so far:
 
 
 TODO/BIG BUGS:
-This repo uses a custom tool i call t3r (t3-remote). That's how we get live feeds of codex on your server to view on your phone. 
-Whenever you write a query on the server, it populates on the local machine, and then t3r reads it and REPOPULATES the chat, so on the server, it'll show up twice, both your query and the agents. But it's only a visual bug, context isn't cluttered. 
-
 If you use nginx, i think there's some special configuration for sending large files over http. gotta figure that out too.
 
 
