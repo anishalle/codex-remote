@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import { i as loadUpdatedCodexCliSessionsFromDisk, n as resolveServerConfig, o as ServerConfig, r as runServer, s as NetService } from "./cli-Bl4SUpNY.mjs";
+import { i as loadUpdatedCodexCliSessionsFromDisk, n as resolveServerConfig, o as ServerConfig, r as runServer, s as NetService } from "./cli-BIDXo99N.mjs";
 import "./PTY-CihSwCdI.mjs";
 import * as NodeRuntime from "@effect/platform-node/NodeRuntime";
 import * as NodeServices from "@effect/platform-node/NodeServices";
@@ -9,12 +9,71 @@ import * as fsSync from "node:fs";
 import * as readline from "node:readline";
 import os from "node:os";
 import { execFile, spawn } from "node:child_process";
+import * as path$1 from "node:path";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import * as fs$1 from "node:fs/promises";
+import { stat } from "node:fs/promises";
 import { createInterface } from "node:readline/promises";
 import process from "node:process";
 
+//#region src/t3rPush/archive.ts
+function execFileBuffer(command, args, cwd) {
+	return new Promise((resolve, reject) => {
+		execFile(command, [...args], {
+			cwd,
+			encoding: "buffer",
+			maxBuffer: 64 * 1024 * 1024
+		}, (error, stdout, stderr) => {
+			if (error) {
+				reject(new Error(Buffer.from(stderr).toString("utf8") || error.message));
+				return;
+			}
+			resolve(Buffer.from(stdout));
+		});
+	});
+}
+async function pathExists(targetPath) {
+	try {
+		await stat(targetPath);
+		return true;
+	} catch (error) {
+		if (error.code === "ENOENT") return false;
+		throw error;
+	}
+}
+function normalizeArchiveEntries(entries) {
+	const unique = /* @__PURE__ */ new Set();
+	for (const entry of entries) {
+		if (entry.length === 0) continue;
+		if (entry.includes("\0") || entry.includes("\n") || entry.includes("\r")) throw new Error(`t3r push cannot archive a path containing control separators: ${JSON.stringify(entry)}`);
+		unique.add(entry);
+	}
+	return [...unique];
+}
+async function collectGitArchiveEntries(workspaceRoot) {
+	const entries = (await execFileBuffer("git", [
+		"ls-files",
+		"-z",
+		"--cached",
+		"--others",
+		"--exclude-standard"
+	], workspaceRoot)).toString("utf8").split("\0").filter((entry) => entry.length > 0);
+	return normalizeArchiveEntries(await pathExists(path$1.join(workspaceRoot, ".git")) ? [".git", ...entries] : entries);
+}
+async function collectWorkspaceArchiveEntries(workspaceRoot) {
+	try {
+		return await collectGitArchiveEntries(workspaceRoot);
+	} catch {
+		return ["."];
+	}
+}
+function serializeWorkspaceArchiveEntries(entries) {
+	const normalized = normalizeArchiveEntries(entries);
+	return normalized.length > 0 ? `${normalized.join("\n")}\n` : "";
+}
+
+//#endregion
 //#region src/t3r.ts
 const DEFAULT_REMOTE_URL = "https://codex.anishalle.com";
 const INTERNAL_DAEMON_COMMAND = "__daemon";
@@ -364,6 +423,7 @@ async function createPushArchive(candidate) {
 	const tempDir = await fs$1.mkdtemp(path.join(os.tmpdir(), "t3r-push-"));
 	const metadataRoot = path.join(tempDir, "metadata");
 	const metadataDir = path.join(metadataRoot, T3R_PUSH_METADATA_DIR);
+	const archiveEntriesPath = path.join(tempDir, "archive-entries.txt");
 	const archivePath = path.join(tempDir, `${candidate.repoName}.tar.gz`);
 	await fs$1.mkdir(metadataDir, { recursive: true });
 	await fs$1.writeFile(path.join(metadataDir, "session.jsonl"), candidate.loaded.contents, "utf8");
@@ -373,12 +433,15 @@ async function createPushArchive(candidate) {
 		sourceCwd: workspaceRoot,
 		createdAt: (/* @__PURE__ */ new Date()).toISOString()
 	}, null, 2), "utf8");
+	const archiveEntries = await collectWorkspaceArchiveEntries(workspaceRoot);
+	await fs$1.writeFile(archiveEntriesPath, serializeWorkspaceArchiveEntries(archiveEntries), "utf8");
 	await runProcess("tar", [
 		"-czf",
 		archivePath,
 		"-C",
 		workspaceRoot,
-		".",
+		"-T",
+		archiveEntriesPath,
 		"-C",
 		metadataRoot,
 		T3R_PUSH_METADATA_DIR
@@ -507,7 +570,7 @@ function runDaemon() {
 		devUrl: Option.none(),
 		noBrowser: Option.some(true),
 		bootstrapFd: Option.none(),
-		autoBootstrapProjectFromCwd: Option.some(true),
+		autoBootstrapProjectFromCwd: Option.some(false),
 		logWebSocketEvents: Option.none(),
 		bridgeUrl: Option.some(remoteUrl),
 		bridgeTokenFile: Option.some(paths.tokenPath),

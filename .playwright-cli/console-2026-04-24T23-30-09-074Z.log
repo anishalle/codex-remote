@@ -1,0 +1,25 @@
+[  170234ms] Error: Minified React error #185; visit https://react.dev/errors/185 for the full message or use the non-minified dev environment for full errors and additional helpful warnings.
+    at Zr (http://127.0.0.1:3773/assets/index-qS3au4zP.js:9:27496)
+    at Yr (http://127.0.0.1:3773/assets/index-qS3au4zP.js:9:27069)
+    at zo (http://127.0.0.1:3773/assets/index-qS3au4zP.js:9:52295)
+    at http://127.0.0.1:3773/assets/index-qS3au4zP.js:9:52176
+    at http://127.0.0.1:3773/assets/index-qS3au4zP.js:25:75913
+    at Set.forEach (<anonymous>)
+    at r (http://127.0.0.1:3773/assets/index-qS3au4zP.js:25:75902)
+    at http://127.0.0.1:3773/assets/index-qS3au4zP.js:34:1407
+    at setPrompt (http://127.0.0.1:3773/assets/index-qS3au4zP.js:34:26184)
+    at http://127.0.0.1:3773/assets/index-qS3au4zP.js:293:49922
+[ 1276033ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:3773/ws' failed: Invalid frame header @ http://127.0.0.1:3773/assets/index-qS3au4zP.js:33
+[ 1276114ms] [WARNING] WebSocket RPC subscription failed {error: SocketReadError: An error occurred during Read} @ http://127.0.0.1:3773/assets/index-qS3au4zP.js:33
+[ 1276115ms] [WARNING] WebSocket RPC subscription failed {error: SocketReadError: An error occurred during Read} @ http://127.0.0.1:3773/assets/index-qS3au4zP.js:33
+[ 1276115ms] [WARNING] WebSocket RPC subscription failed {error: SocketReadError: An error occurred during Read} @ http://127.0.0.1:3773/assets/index-qS3au4zP.js:33
+[ 1276115ms] [WARNING] WebSocket RPC subscription failed {error: SocketReadError: An error occurred during Read} @ http://127.0.0.1:3773/assets/index-qS3au4zP.js:33
+[ 1276115ms] [WARNING] WebSocket RPC subscription failed {error: SocketReadError: An error occurred during Read} @ http://127.0.0.1:3773/assets/index-qS3au4zP.js:33
+[ 1276115ms] [WARNING] WebSocket RPC subscription failed {error: SocketReadError: An error occurred during Read} @ http://127.0.0.1:3773/assets/index-qS3au4zP.js:33
+[ 1276115ms] [WARNING] WebSocket RPC subscription failed {error: SocketReadError: An error occurred during Read} @ http://127.0.0.1:3773/assets/index-qS3au4zP.js:33
+[ 1276115ms] [WARNING] WebSocket RPC subscription failed {error: SocketReadError: An error occurred during Read} @ http://127.0.0.1:3773/assets/index-qS3au4zP.js:33
+[ 1276115ms] [WARNING] WebSocket RPC subscription failed {error: SocketReadError: An error occurred during Read} @ http://127.0.0.1:3773/assets/index-qS3au4zP.js:33
+[ 1276115ms] [WARNING] WebSocket RPC subscription failed {error: SocketReadError: An error occurred during Read} @ http://127.0.0.1:3773/assets/index-qS3au4zP.js:33
+[ 1276115ms] [WARNING] WebSocket RPC subscription failed {error: SocketReadError: An error occurred during Read} @ http://127.0.0.1:3773/assets/index-qS3au4zP.js:33
+[ 1276115ms] [WARNING] WebSocket RPC subscription failed {error: SocketReadError: An error occurred during Read} @ http://127.0.0.1:3773/assets/index-qS3au4zP.js:33
+[ 1276116ms] [WARNING] WebSocket RPC subscription failed {error: SocketReadError: An error occurred during Read} @ http://127.0.0.1:3773/assets/index-qS3au4zP.js:33

@@ -1,0 +1,171 @@
+[  934570ms] [WARNING] WebSocket RPC subscription failed {error: Expected never, got Error: Local bridge reconnecte…ompleted.)
+  at ["cause"]["failures"][0]["error"]} @ https://codex.anishalle.com/assets/index-SioR3PAm.js:33
+[  934588ms] [WARNING] WebSocket RPC subscription failed {error: Unable to parse keybindings config at local bridge… bridge reconnected before the request completed.} @ https://codex.anishalle.com/assets/index-SioR3PAm.js:33
+[  934589ms] [WARNING] WebSocket RPC subscription failed {error: Local bridge reconnected before the request completed.} @ https://codex.anishalle.com/assets/index-SioR3PAm.js:33
+[  934590ms] [WARNING] WebSocket RPC subscription failed {error: Expected never, got TerminalHistoryError: Failed t…mpleted.))
+  at ["cause"]["failures"][0]["error"]} @ https://codex.anishalle.com/assets/index-SioR3PAm.js:33
+[  934591ms] [WARNING] WebSocket RPC subscription failed {error: Git manager failed in local bridge: Local bridge reconnected before the request completed.} @ https://codex.anishalle.com/assets/index-SioR3PAm.js:33
+[  934592ms] [WARNING] WebSocket RPC subscription failed {error: Local bridge reconnected before the request completed.} @ https://codex.anishalle.com/assets/index-SioR3PAm.js:33
+[  934593ms] [WARNING] WebSocket RPC subscription failed {error: Local bridge reconnected before the request completed.} @ https://codex.anishalle.com/assets/index-SioR3PAm.js:33
+[  934593ms] [WARNING] WebSocket RPC subscription failed {error: Local bridge reconnected before the request completed.} @ https://codex.anishalle.com/assets/index-SioR3PAm.js:33
+[  934594ms] [WARNING] WebSocket RPC subscription failed {error: Local bridge reconnected before the request completed.} @ https://codex.anishalle.com/assets/index-SioR3PAm.js:33
+[  934594ms] [WARNING] WebSocket RPC subscription failed {error: Local bridge reconnected before the request completed.} @ https://codex.anishalle.com/assets/index-SioR3PAm.js:33
+[  934594ms] [WARNING] WebSocket RPC subscription failed {error: Local bridge reconnected before the request completed.} @ https://codex.anishalle.com/assets/index-SioR3PAm.js:33
+[  934594ms] [WARNING] WebSocket RPC subscription failed {error: Local bridge reconnected before the request completed.} @ https://codex.anishalle.com/assets/index-SioR3PAm.js:33
+[  934598ms] [WARNING] WebSocket RPC subscription failed {error: Local bridge reconnected before the request completed.} @ https://codex.anishalle.com/assets/index-SioR3PAm.js:33
+[ 4488619ms] [WARNING] WebSocket RPC subscription disconnected {error: SocketCloseError: 1006} @ https://codex.anishalle.com/assets/index-SioR3PAm.js:33
+[ 4489147ms] [ERROR] Failed to load resource: the server responded with a status of 502 (Bad Gateway) @ https://codex.anishalle.com/api/observability/v1/traces:0
+[ 4490193ms] [ERROR] Failed to load resource: the server responded with a status of 502 (Bad Gateway) @ https://codex.anishalle.com/api/observability/v1/traces:0
+[ 4490805ms] [ERROR] WebSocket connection to 'wss://codex.anishalle.com/ws?bridgeEnvironmentId=378f2b7b-7f7b-4d37-a701-bb758d25b13f' failed: Error during WebSocket handshake: Unexpected response code: 502 @ https://codex.anishalle.com/assets/index-SioR3PAm.js:33
+[ 4490944ms] [ERROR] WebSocket connection to 'wss://codex.anishalle.com/ws' failed: Error during WebSocket handshake: Unexpected response code: 502 @ https://codex.anishalle.com/assets/index-SioR3PAm.js:33
+[ 4491243ms] [ERROR] Failed to load resource: the server responded with a status of 502 (Bad Gateway) @ https://codex.anishalle.com/api/observability/v1/traces:0
+[ 4492295ms] [ERROR] Failed to load resource: the server responded with a status of 502 (Bad Gateway) @ https://codex.anishalle.com/api/observability/v1/traces:0
+[ 6321535ms] [WARNING] WebSocket RPC subscription failed {error: Expected never, got Error: Local bridge reconnecte…ompleted.)
+  at ["cause"]["failures"][0]["error"]} @ https://codex.anishalle.com/assets/index-SioR3PAm.js:33
+[ 6321546ms] [WARNING] WebSocket RPC subscription failed {error: Unable to parse keybindings config at local bridge… bridge reconnected before the request completed.} @ https://codex.anishalle.com/assets/index-SioR3PAm.js:33
+[ 6321548ms] [WARNING] WebSocket RPC subscription failed {error: Local bridge reconnected before the request completed.} @ https://codex.anishalle.com/assets/index-SioR3PAm.js:33
+[ 6321548ms] [WARNING] WebSocket RPC subscription failed {error: Expected never, got TerminalHistoryError: Failed t…mpleted.))
+  at ["cause"]["failures"][0]["error"]} @ https://codex.anishalle.com/assets/index-SioR3PAm.js:33
+[ 6321549ms] [WARNING] WebSocket RPC subscription failed {error: Git manager failed in local bridge: Local bridge reconnected before the request completed.} @ https://codex.anishalle.com/assets/index-SioR3PAm.js:33
+[ 6321549ms] [WARNING] WebSocket RPC subscription failed {error: Local bridge reconnected before the request completed.} @ https://codex.anishalle.com/assets/index-SioR3PAm.js:33
+[ 6321549ms] [WARNING] WebSocket RPC subscription failed {error: Local bridge reconnected before the request completed.} @ https://codex.anishalle.com/assets/index-SioR3PAm.js:33
+[ 6321550ms] [WARNING] WebSocket RPC subscription failed {error: Local bridge reconnected before the request completed.} @ https://codex.anishalle.com/assets/index-SioR3PAm.js:33
+[ 6321550ms] [WARNING] WebSocket RPC subscription failed {error: Local bridge reconnected before the request completed.} @ https://codex.anishalle.com/assets/index-SioR3PAm.js:33
+[ 6321551ms] [WARNING] WebSocket RPC subscription failed {error: Local bridge reconnected before the request completed.} @ https://codex.anishalle.com/assets/index-SioR3PAm.js:33
+[ 6321566ms] [WARNING] WebSocket RPC subscription failed {error: Local bridge reconnected before the request completed.} @ https://codex.anishalle.com/assets/index-SioR3PAm.js:33
+[ 6621624ms] [WARNING] WebSocket RPC subscription disconnected {error: SocketCloseError: 1006} @ https://codex.anishalle.com/assets/index-SioR3PAm.js:33
+[ 6622201ms] [ERROR] Failed to load resource: the server responded with a status of 502 (Bad Gateway) @ https://codex.anishalle.com/api/observability/v1/traces:0
+[ 6623248ms] [ERROR] Failed to load resource: the server responded with a status of 502 (Bad Gateway) @ https://codex.anishalle.com/api/observability/v1/traces:0
+[ 6623827ms] [ERROR] WebSocket connection to 'wss://codex.anishalle.com/ws' failed: Error during WebSocket handshake: Unexpected response code: 502 @ https://codex.anishalle.com/assets/index-SioR3PAm.js:33
+[ 6623947ms] [ERROR] WebSocket connection to 'wss://codex.anishalle.com/ws?bridgeEnvironmentId=378f2b7b-7f7b-4d37-a701-bb758d25b13f' failed: Error during WebSocket handshake: Unexpected response code: 502 @ https://codex.anishalle.com/assets/index-SioR3PAm.js:33
+[ 6624292ms] [ERROR] Failed to load resource: the server responded with a status of 502 (Bad Gateway) @ https://codex.anishalle.com/api/observability/v1/traces:0
+[ 6625341ms] [ERROR] Failed to load resource: the server responded with a status of 502 (Bad Gateway) @ https://codex.anishalle.com/api/observability/v1/traces:0
+[ 7910430ms] [WARNING] WebSocket RPC subscription disconnected {error: SocketCloseError: 1006} @ https://codex.anishalle.com/assets/index-SioR3PAm.js:33
+[ 7910438ms] [WARNING] WebSocket RPC subscription disconnected {error: SocketCloseError: 1006} @ https://codex.anishalle.com/assets/index-SioR3PAm.js:33
+[ 8171316ms] [WARNING] WebSocket RPC subscription disconnected {error: SocketCloseError: 1006} @ https://codex.anishalle.com/assets/index-SioR3PAm.js:33
+[ 8171883ms] [WARNING] WebSocket RPC subscription disconnected {error: SocketCloseError: 1006} @ https://codex.anishalle.com/assets/index-SioR3PAm.js:33
+[ 8190679ms] [ERROR] Failed to load resource: net::ERR_TIMED_OUT @ https://codex.anishalle.com/api/observability/v1/traces:0
+[ 8818585ms] [WARNING] WebSocket RPC subscription disconnected {error: SocketCloseError: 1006} @ https://codex.anishalle.com/assets/index-SioR3PAm.js:33
+[ 9208760ms] [WARNING] WebSocket RPC subscription disconnected {error: SocketCloseError: 1006} @ https://codex.anishalle.com/assets/index-SioR3PAm.js:33
+[ 9210103ms] [WARNING] WebSocket RPC subscription failed {error: Expected never, got Error: Local bridge is not con…onnected.)
+  at ["cause"]["failures"][0]["error"]} @ https://codex.anishalle.com/assets/index-SioR3PAm.js:33
+[ 9210104ms] [WARNING] WebSocket RPC subscription failed {error: Unable to parse keybindings config at local bridge: Local bridge is not connected.} @ https://codex.anishalle.com/assets/index-SioR3PAm.js:33
+[ 9210105ms] [WARNING] WebSocket RPC subscription failed {error: Local bridge is not connected.} @ https://codex.anishalle.com/assets/index-SioR3PAm.js:33
+[ 9210106ms] [WARNING] WebSocket RPC subscription failed {error: Expected never, got TerminalHistoryError: Failed t…nnected.))
+  at ["cause"]["failures"][0]["error"]} @ https://codex.anishalle.com/assets/index-SioR3PAm.js:33
+[ 9210106ms] [WARNING] WebSocket RPC subscription failed {error: Git manager failed in local bridge: Local bridge is not connected.} @ https://codex.anishalle.com/assets/index-SioR3PAm.js:33
+[ 9210106ms] [WARNING] WebSocket RPC subscription failed {error: Local bridge is not connected.} @ https://codex.anishalle.com/assets/index-SioR3PAm.js:33
+[ 9210107ms] [WARNING] WebSocket RPC subscription failed {error: Local bridge is not connected.} @ https://codex.anishalle.com/assets/index-SioR3PAm.js:33
+[ 9210108ms] [WARNING] WebSocket RPC subscription failed {error: Local bridge is not connected.} @ https://codex.anishalle.com/assets/index-SioR3PAm.js:33
+[ 9210108ms] [WARNING] WebSocket RPC subscription failed {error: Local bridge is not connected.} @ https://codex.anishalle.com/assets/index-SioR3PAm.js:33
+[ 9210109ms] [WARNING] WebSocket RPC subscription failed {error: Local bridge is not connected.} @ https://codex.anishalle.com/assets/index-SioR3PAm.js:33
+[ 9210143ms] [WARNING] WebSocket RPC subscription failed {error: Local bridge is not connected.} @ https://codex.anishalle.com/assets/index-SioR3PAm.js:33
+[ 9210961ms] [WARNING] WebSocket RPC subscription disconnected {error: SocketCloseError: 1006} @ https://codex.anishalle.com/assets/index-SioR3PAm.js:33
+[ 9265094ms] [ERROR] Failed to load resource: net::ERR_TIMED_OUT @ https://codex.anishalle.com/api/observability/v1/traces:0
+[14381566ms] [WARNING] WebSocket RPC subscription failed {error: Expected never, got Error: Local bridge stopped po… polling.)
+  at ["cause"]["failures"][0]["error"]} @ https://codex.anishalle.com/assets/index-SioR3PAm.js:33
+[14381577ms] [WARNING] WebSocket RPC subscription failed {error: Unable to parse keybindings config at local bridge: Local bridge stopped polling.} @ https://codex.anishalle.com/assets/index-SioR3PAm.js:33
+[14381591ms] [WARNING] WebSocket RPC subscription failed {error: Local bridge stopped polling.} @ https://codex.anishalle.com/assets/index-SioR3PAm.js:33
+[14381593ms] [WARNING] WebSocket RPC subscription failed {error: Expected never, got TerminalHistoryError: Failed t…polling.))
+  at ["cause"]["failures"][0]["error"]} @ https://codex.anishalle.com/assets/index-SioR3PAm.js:33
+[14381595ms] [WARNING] WebSocket RPC subscription failed {error: Git manager failed in local bridge: Local bridge stopped polling.} @ https://codex.anishalle.com/assets/index-SioR3PAm.js:33
+[14381598ms] [WARNING] WebSocket RPC subscription failed {error: Local bridge stopped polling.} @ https://codex.anishalle.com/assets/index-SioR3PAm.js:33
+[14381600ms] [WARNING] WebSocket RPC subscription failed {error: Local bridge stopped polling.} @ https://codex.anishalle.com/assets/index-SioR3PAm.js:33
+[14381601ms] [WARNING] WebSocket RPC subscription failed {error: Local bridge stopped polling.} @ https://codex.anishalle.com/assets/index-SioR3PAm.js:33
+[14381602ms] [WARNING] WebSocket RPC subscription failed {error: Local bridge stopped polling.} @ https://codex.anishalle.com/assets/index-SioR3PAm.js:33
+[14381614ms] [WARNING] WebSocket RPC subscription failed {error: Local bridge stopped polling.} @ https://codex.anishalle.com/assets/index-SioR3PAm.js:33
+[14381615ms] [WARNING] WebSocket RPC subscription failed {error: Local bridge stopped polling.} @ https://codex.anishalle.com/assets/index-SioR3PAm.js:33
+[16686868ms] [WARNING] WebSocket RPC subscription disconnected {error: SocketCloseError: 1006} @ https://codex.anishalle.com/assets/index-SioR3PAm.js:33
+[16907564ms] [WARNING] WebSocket RPC subscription disconnected {error: SocketCloseError: 1006} @ https://codex.anishalle.com/assets/index-SioR3PAm.js:33
+[17379967ms] [ERROR] WebSocket connection to 'wss://codex.anishalle.com/ws' failed: Error in connection establishment: net::ERR_INTERNET_DISCONNECTED @ https://codex.anishalle.com/assets/index-SioR3PAm.js:33
+[17381985ms] [ERROR] WebSocket connection to 'wss://codex.anishalle.com/ws' failed: Error in connection establishment: net::ERR_INTERNET_DISCONNECTED @ https://codex.anishalle.com/assets/index-SioR3PAm.js:33
+[17385991ms] [ERROR] WebSocket connection to 'wss://codex.anishalle.com/ws' failed: Error in connection establishment: net::ERR_INTERNET_DISCONNECTED @ https://codex.anishalle.com/assets/index-SioR3PAm.js:33
+[17519888ms] [ERROR] Failed to load resource: net::ERR_INTERNET_DISCONNECTED @ https://codex.anishalle.com/api/observability/v1/traces:0
+[17520896ms] [ERROR] Failed to load resource: net::ERR_INTERNET_DISCONNECTED @ https://codex.anishalle.com/api/observability/v1/traces:0
+[17521902ms] [ERROR] Failed to load resource: net::ERR_INTERNET_DISCONNECTED @ https://codex.anishalle.com/api/observability/v1/traces:0
+[17522908ms] [ERROR] Failed to load resource: net::ERR_INTERNET_DISCONNECTED @ https://codex.anishalle.com/api/observability/v1/traces:0
+[17528885ms] [WARNING] WebSocket connection to 'wss://codex.anishalle.com/ws' failed: WebSocket is closed before the connection is established. @ https://codex.anishalle.com/assets/index-SioR3PAm.js:24
+[17529891ms] [ERROR] WebSocket connection to 'wss://codex.anishalle.com/ws' failed: Error in connection establishment: net::ERR_INTERNET_DISCONNECTED @ https://codex.anishalle.com/assets/index-SioR3PAm.js:33
+[17531900ms] [ERROR] WebSocket connection to 'wss://codex.anishalle.com/ws' failed: Error in connection establishment: net::ERR_INTERNET_DISCONNECTED @ https://codex.anishalle.com/assets/index-SioR3PAm.js:33
+[17535908ms] [ERROR] WebSocket connection to 'wss://codex.anishalle.com/ws' failed: Error in connection establishment: net::ERR_INTERNET_DISCONNECTED @ https://codex.anishalle.com/assets/index-SioR3PAm.js:33
+[17564059ms] [ERROR] WebSocket connection to 'wss://codex.anishalle.com/ws' failed: Error in connection establishment: net::ERR_INTERNET_DISCONNECTED @ https://codex.anishalle.com/assets/index-SioR3PAm.js:33
+[17673245ms] [ERROR] WebSocket connection to 'wss://codex.anishalle.com/ws' failed: Error in connection establishment: net::ERR_INTERNET_DISCONNECTED @ https://codex.anishalle.com/assets/index-SioR3PAm.js:33
+[17677252ms] [ERROR] WebSocket connection to 'wss://codex.anishalle.com/ws' failed: Error in connection establishment: net::ERR_INTERNET_DISCONNECTED @ https://codex.anishalle.com/assets/index-SioR3PAm.js:33
+[17685260ms] [ERROR] WebSocket connection to 'wss://codex.anishalle.com/ws' failed: Error in connection establishment: net::ERR_INTERNET_DISCONNECTED @ https://codex.anishalle.com/assets/index-SioR3PAm.js:33
+[17707364ms] [ERROR] WebSocket connection to 'wss://codex.anishalle.com/ws' failed: Error in connection establishment: net::ERR_INTERNET_DISCONNECTED @ https://codex.anishalle.com/assets/index-SioR3PAm.js:33
+[17709371ms] [ERROR] WebSocket connection to 'wss://codex.anishalle.com/ws' failed: Error in connection establishment: net::ERR_INTERNET_DISCONNECTED @ https://codex.anishalle.com/assets/index-SioR3PAm.js:33
+[17713375ms] [ERROR] WebSocket connection to 'wss://codex.anishalle.com/ws' failed: Error in connection establishment: net::ERR_INTERNET_DISCONNECTED @ https://codex.anishalle.com/assets/index-SioR3PAm.js:33
+[17759300ms] [ERROR] WebSocket connection to 'wss://codex.anishalle.com/ws' failed: Error in connection establishment: net::ERR_INTERNET_DISCONNECTED @ https://codex.anishalle.com/assets/index-SioR3PAm.js:33
+[17761308ms] [ERROR] WebSocket connection to 'wss://codex.anishalle.com/ws' failed: Error in connection establishment: net::ERR_INTERNET_DISCONNECTED @ https://codex.anishalle.com/assets/index-SioR3PAm.js:33
+[17790134ms] [ERROR] WebSocket connection to 'wss://codex.anishalle.com/ws' failed: Error in connection establishment: net::ERR_INTERNET_DISCONNECTED @ https://codex.anishalle.com/assets/index-SioR3PAm.js:33
+[17792141ms] [ERROR] WebSocket connection to 'wss://codex.anishalle.com/ws' failed: Error in connection establishment: net::ERR_INTERNET_DISCONNECTED @ https://codex.anishalle.com/assets/index-SioR3PAm.js:33
+[17796147ms] [ERROR] WebSocket connection to 'wss://codex.anishalle.com/ws' failed: Error in connection establishment: net::ERR_INTERNET_DISCONNECTED @ https://codex.anishalle.com/assets/index-SioR3PAm.js:33
+[17804153ms] [ERROR] WebSocket connection to 'wss://codex.anishalle.com/ws' failed: Error in connection establishment: net::ERR_INTERNET_DISCONNECTED @ https://codex.anishalle.com/assets/index-SioR3PAm.js:33
+[17820160ms] [ERROR] WebSocket connection to 'wss://codex.anishalle.com/ws' failed: Error in connection establishment: net::ERR_INTERNET_DISCONNECTED @ https://codex.anishalle.com/assets/index-SioR3PAm.js:33
+[20621338ms] [WARNING] WebSocket RPC subscription disconnected {error: SocketCloseError: 1006} @ https://codex.anishalle.com/assets/index-SioR3PAm.js:33
+[22061580ms] [WARNING] WebSocket RPC subscription disconnected {error: SocketCloseError: 1006} @ https://codex.anishalle.com/assets/index-SioR3PAm.js:33
+[22527467ms] [WARNING] WebSocket RPC subscription disconnected {error: SocketCloseError: 1006} @ https://codex.anishalle.com/assets/index-SioR3PAm.js:33
+[24413302ms] [WARNING] WebSocket RPC subscription disconnected {error: SocketCloseError: 1006} @ https://codex.anishalle.com/assets/index-SioR3PAm.js:33
+[24640363ms] [WARNING] WebSocket RPC subscription disconnected {error: SocketCloseError: 1006} @ https://codex.anishalle.com/assets/index-SioR3PAm.js:33
+[27272619ms] [WARNING] WebSocket RPC subscription disconnected {error: SocketCloseError: 1006} @ https://codex.anishalle.com/assets/index-SioR3PAm.js:33
+[27366318ms] [WARNING] WebSocket RPC subscription disconnected {error: SocketCloseError: 1006} @ https://codex.anishalle.com/assets/index-SioR3PAm.js:33
+[27799197ms] [WARNING] WebSocket RPC subscription disconnected {error: SocketCloseError: 1006} @ https://codex.anishalle.com/assets/index-SioR3PAm.js:33
+[28333074ms] [WARNING] WebSocket RPC subscription disconnected {error: SocketCloseError: 1006} @ https://codex.anishalle.com/assets/index-SioR3PAm.js:33
+[28619446ms] [WARNING] WebSocket RPC subscription disconnected {error: SocketCloseError: 1006} @ https://codex.anishalle.com/assets/index-SioR3PAm.js:33
+[29801156ms] [WARNING] WebSocket RPC subscription disconnected {error: SocketCloseError: 1006} @ https://codex.anishalle.com/assets/index-SioR3PAm.js:33
+[30345063ms] [WARNING] WebSocket RPC subscription disconnected {error: SocketCloseError: 1006} @ https://codex.anishalle.com/assets/index-SioR3PAm.js:33
+[31014747ms] [WARNING] WebSocket RPC subscription disconnected {error: SocketCloseError: 1006} @ https://codex.anishalle.com/assets/index-SioR3PAm.js:33
+[32189158ms] [WARNING] WebSocket RPC subscription disconnected {error: SocketCloseError: 1006} @ https://codex.anishalle.com/assets/index-SioR3PAm.js:33
+[34241729ms] [WARNING] WebSocket RPC subscription disconnected {error: SocketCloseError: 1006} @ https://codex.anishalle.com/assets/index-SioR3PAm.js:33
+[35686008ms] [WARNING] WebSocket RPC subscription disconnected {error: SocketCloseError: 1006} @ https://codex.anishalle.com/assets/index-SioR3PAm.js:33
+[35881083ms] [WARNING] WebSocket RPC subscription disconnected {error: SocketCloseError: 1006} @ https://codex.anishalle.com/assets/index-SioR3PAm.js:33
+[36934745ms] [WARNING] WebSocket RPC subscription disconnected {error: SocketCloseError: 1006} @ https://codex.anishalle.com/assets/index-SioR3PAm.js:33
+[37931092ms] [WARNING] WebSocket RPC subscription disconnected {error: SocketCloseError: 1006} @ https://codex.anishalle.com/assets/index-SioR3PAm.js:33
+[38288568ms] [WARNING] WebSocket RPC subscription disconnected {error: SocketCloseError: 1006} @ https://codex.anishalle.com/assets/index-SioR3PAm.js:33
+[39264664ms] [WARNING] WebSocket RPC subscription disconnected {error: SocketCloseError: 1006} @ https://codex.anishalle.com/assets/index-SioR3PAm.js:33
+[40241231ms] [WARNING] WebSocket RPC subscription disconnected {error: SocketCloseError: 1006} @ https://codex.anishalle.com/assets/index-SioR3PAm.js:33
+[41948114ms] [WARNING] WebSocket RPC subscription disconnected {error: SocketCloseError: 1006} @ https://codex.anishalle.com/assets/index-SioR3PAm.js:33
+[42906415ms] [WARNING] WebSocket RPC subscription disconnected {error: SocketCloseError: 1006} @ https://codex.anishalle.com/assets/index-SioR3PAm.js:33
+[44056949ms] [WARNING] WebSocket RPC subscription disconnected {error: SocketCloseError: 1006} @ https://codex.anishalle.com/assets/index-SioR3PAm.js:33
+[44213093ms] [WARNING] WebSocket RPC subscription disconnected {error: SocketCloseError: 1006} @ https://codex.anishalle.com/assets/index-SioR3PAm.js:33
+[45240226ms] [WARNING] WebSocket RPC subscription disconnected {error: SocketCloseError: 1006} @ https://codex.anishalle.com/assets/index-SioR3PAm.js:33
+[45607356ms] [WARNING] WebSocket RPC subscription disconnected {error: SocketCloseError: 1006} @ https://codex.anishalle.com/assets/index-SioR3PAm.js:33
+[46521278ms] [WARNING] WebSocket RPC subscription disconnected {error: SocketCloseError: 1006} @ https://codex.anishalle.com/assets/index-SioR3PAm.js:33
+[47522230ms] [WARNING] WebSocket RPC subscription disconnected {error: SocketCloseError: 1006} @ https://codex.anishalle.com/assets/index-SioR3PAm.js:33
+[48565820ms] [WARNING] WebSocket RPC subscription disconnected {error: SocketCloseError: 1006} @ https://codex.anishalle.com/assets/index-SioR3PAm.js:33
+[49267520ms] [WARNING] WebSocket RPC subscription disconnected {error: SocketCloseError: 1006} @ https://codex.anishalle.com/assets/index-SioR3PAm.js:33
+[49954092ms] [WARNING] WebSocket RPC subscription disconnected {error: SocketCloseError: 1006} @ https://codex.anishalle.com/assets/index-SioR3PAm.js:33
+[50969314ms] [WARNING] WebSocket RPC subscription disconnected {error: SocketCloseError: 1006} @ https://codex.anishalle.com/assets/index-SioR3PAm.js:33
+[51501480ms] [WARNING] WebSocket RPC subscription disconnected {error: SocketCloseError: 1006} @ https://codex.anishalle.com/assets/index-SioR3PAm.js:33
+[52553865ms] [WARNING] WebSocket RPC subscription disconnected {error: SocketCloseError: 1006} @ https://codex.anishalle.com/assets/index-SioR3PAm.js:33
+[52929515ms] [WARNING] WebSocket RPC subscription disconnected {error: SocketCloseError: 1006} @ https://codex.anishalle.com/assets/index-SioR3PAm.js:33
+[54021598ms] [WARNING] WebSocket RPC subscription disconnected {error: SocketCloseError: 1006} @ https://codex.anishalle.com/assets/index-SioR3PAm.js:33
+[54916777ms] [WARNING] WebSocket RPC subscription disconnected {error: SocketCloseError: 1006} @ https://codex.anishalle.com/assets/index-SioR3PAm.js:33
+[55520544ms] [WARNING] WebSocket RPC subscription disconnected {error: SocketCloseError: 1006} @ https://codex.anishalle.com/assets/index-SioR3PAm.js:33
+[56574899ms] [WARNING] WebSocket RPC subscription disconnected {error: SocketCloseError: 1006} @ https://codex.anishalle.com/assets/index-SioR3PAm.js:33
+[58579729ms] [WARNING] WebSocket RPC subscription disconnected {error: SocketCloseError: 1006} @ https://codex.anishalle.com/assets/index-SioR3PAm.js:33
+[59529393ms] [WARNING] WebSocket RPC subscription disconnected {error: SocketCloseError: 1006} @ https://codex.anishalle.com/assets/index-SioR3PAm.js:33
+[60231250ms] [WARNING] WebSocket RPC subscription disconnected {error: SocketCloseError: 1006} @ https://codex.anishalle.com/assets/index-SioR3PAm.js:33
+[61342894ms] [WARNING] WebSocket RPC subscription disconnected {error: SocketCloseError: 1006} @ https://codex.anishalle.com/assets/index-SioR3PAm.js:33
+[61895566ms] [WARNING] WebSocket RPC subscription disconnected {error: SocketCloseError: 1006} @ https://codex.anishalle.com/assets/index-SioR3PAm.js:33
+[62430791ms] [WARNING] WebSocket RPC subscription disconnected {error: SocketCloseError: 1006} @ https://codex.anishalle.com/assets/index-SioR3PAm.js:33
+[63407901ms] [WARNING] WebSocket RPC subscription disconnected {error: SocketCloseError: 1006} @ https://codex.anishalle.com/assets/index-SioR3PAm.js:33
+[64411124ms] [WARNING] WebSocket RPC subscription disconnected {error: SocketCloseError: 1006} @ https://codex.anishalle.com/assets/index-SioR3PAm.js:33
+[65188586ms] [WARNING] WebSocket RPC subscription disconnected {error: SocketCloseError: 1006} @ https://codex.anishalle.com/assets/index-SioR3PAm.js:33
+[65452346ms] [WARNING] WebSocket RPC subscription disconnected {error: SocketCloseError: 1006} @ https://codex.anishalle.com/assets/index-SioR3PAm.js:33
+[65912296ms] [WARNING] WebSocket RPC subscription disconnected {error: SocketCloseError: 1006} @ https://codex.anishalle.com/assets/index-SioR3PAm.js:33
+[67351421ms] [WARNING] WebSocket RPC subscription disconnected {error: SocketCloseError: 1006} @ https://codex.anishalle.com/assets/index-SioR3PAm.js:33
+[67553117ms] [WARNING] WebSocket RPC subscription disconnected {error: SocketCloseError: 1006} @ https://codex.anishalle.com/assets/index-SioR3PAm.js:33
+[68631421ms] [WARNING] WebSocket RPC subscription disconnected {error: SocketCloseError: 1006} @ https://codex.anishalle.com/assets/index-SioR3PAm.js:33
+[69619645ms] [WARNING] WebSocket RPC subscription disconnected {error: SocketCloseError: 1006} @ https://codex.anishalle.com/assets/index-SioR3PAm.js:33
+[70636346ms] [WARNING] WebSocket RPC subscription disconnected {error: SocketCloseError: 1006} @ https://codex.anishalle.com/assets/index-SioR3PAm.js:33
+[71042990ms] [WARNING] WebSocket RPC subscription disconnected {error: SocketCloseError: 1006} @ https://codex.anishalle.com/assets/index-SioR3PAm.js:33
+[71443386ms] [WARNING] WebSocket RPC subscription disconnected {error: SocketCloseError: 1006} @ https://codex.anishalle.com/assets/index-SioR3PAm.js:33
+[71573239ms] [WARNING] WebSocket RPC subscription disconnected {error: SocketCloseError: 1006} @ https://codex.anishalle.com/assets/index-SioR3PAm.js:33
+[72033456ms] [WARNING] WebSocket RPC subscription disconnected {error: SocketCloseError: 1006} @ https://codex.anishalle.com/assets/index-SioR3PAm.js:33
+[74033076ms] [WARNING] WebSocket RPC subscription disconnected {error: SocketCloseError: 1006} @ https://codex.anishalle.com/assets/index-SioR3PAm.js:33
+[74225796ms] [WARNING] WebSocket RPC subscription disconnected {error: SocketCloseError: 1006} @ https://codex.anishalle.com/assets/index-SioR3PAm.js:33
+[74768823ms] [WARNING] WebSocket RPC subscription disconnected {error: SocketCloseError: 1006} @ https://codex.anishalle.com/assets/index-SioR3PAm.js:33
+[75743080ms] [WARNING] WebSocket RPC subscription disconnected {error: SocketCloseError: 1006} @ https://codex.anishalle.com/assets/index-SioR3PAm.js:33
+[76831823ms] [WARNING] WebSocket RPC subscription disconnected {error: SocketCloseError: 1006} @ https://codex.anishalle.com/assets/index-SioR3PAm.js:33
+[77684641ms] [WARNING] WebSocket RPC subscription disconnected {error: SocketCloseError: 1006} @ https://codex.anishalle.com/assets/index-SioR3PAm.js:33

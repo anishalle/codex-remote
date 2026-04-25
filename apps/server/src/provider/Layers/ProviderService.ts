@@ -45,6 +45,8 @@ import { type EventNdjsonLogger, makeEventNdjsonLogger } from "./EventNdjsonLogg
 import { AnalyticsService } from "../../telemetry/Services/AnalyticsService.ts";
 import { ServerSettingsService } from "../../serverSettings.ts";
 
+const PROVIDER_RUNTIME_SOURCE = "provider-runtime";
+
 export interface ProviderServiceLiveOptions {
   readonly canonicalEventLogPath?: string;
   readonly canonicalEventLogger?: EventNdjsonLogger;
@@ -107,6 +109,7 @@ function toRuntimePayloadFromSession(
   },
 ): Record<string, unknown> {
   return {
+    source: PROVIDER_RUNTIME_SOURCE,
     cwd: session.cwd ?? null,
     model: session.model ?? null,
     activeTurnId: session.activeTurnId ?? null,
@@ -482,6 +485,7 @@ const makeProviderService = Effect.fn("makeProviderService")(function* (
         status: "running",
         ...(turn.resumeCursor !== undefined ? { resumeCursor: turn.resumeCursor } : {}),
         runtimePayload: {
+          source: PROVIDER_RUNTIME_SOURCE,
           ...(input.modelSelection !== undefined ? { modelSelection: input.modelSelection } : {}),
           activeTurnId: turn.turnId,
           lastRuntimeEvent: "provider.sendTurn",
@@ -649,6 +653,7 @@ const makeProviderService = Effect.fn("makeProviderService")(function* (
           provider: routed.adapter.provider,
           status: "stopped",
           runtimePayload: {
+            source: PROVIDER_RUNTIME_SOURCE,
             activeTurnId: null,
           },
         });
@@ -779,6 +784,7 @@ const makeProviderService = Effect.fn("makeProviderService")(function* (
             provider,
             status: "stopped",
             runtimePayload: {
+              source: PROVIDER_RUNTIME_SOURCE,
               activeTurnId: null,
               lastRuntimeEvent: "provider.stopAll",
               lastRuntimeEventAt: new Date().toISOString(),

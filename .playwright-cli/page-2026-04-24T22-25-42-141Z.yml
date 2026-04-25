@@ -1,0 +1,15 @@
+- generic [ref=e4]:
+  - paragraph [ref=e5]: T3 Code (Alpha)
+  - heading "Pair with this environment" [level=1] [ref=e6]
+  - paragraph [ref=e7]: Enter a pairing token to start a session with this environment.
+  - generic [ref=e8]:
+    - generic [ref=e9]:
+      - text: Pairing token
+      - textbox "Pairing token" [ref=e11]:
+        - /placeholder: Paste a one-time token or pairing secret
+        - text: DDBCBYS6CLEY
+    - generic [ref=e12]: "{\"error\":\"Invalid bootstrap credential.\"}"
+    - generic [ref=e13]:
+      - button "Continue" [ref=e14] [cursor=pointer]
+      - button "Reload app" [ref=e15] [cursor=pointer]
+  - generic [ref=e16]: This environment accepts one-time pairing tokens. Pairing links can open this page directly, or you can paste the token here.

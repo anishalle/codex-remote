@@ -364,6 +364,56 @@ describe("ProviderCommandReactor", () => {
     expect(thread?.session?.runtimeMode).toBe("approval-required");
   });
 
+  it("starts the provider session with the turn-start runtime mode even when thread state is stale", async () => {
+    const harness = await createHarness();
+    const now = new Date().toISOString();
+
+    await Effect.runPromise(
+      harness.engine.dispatch({
+        type: "thread.runtime-mode.set",
+        commandId: CommandId.make("cmd-runtime-mode-set-stale-full-access"),
+        threadId: ThreadId.make("thread-1"),
+        runtimeMode: "full-access",
+        createdAt: now,
+      }),
+    );
+
+    await waitFor(async () => {
+      const readModel = await Effect.runPromise(harness.engine.getReadModel());
+      const thread = readModel.threads.find((entry) => entry.id === ThreadId.make("thread-1"));
+      return thread?.runtimeMode === "full-access";
+    });
+
+    await Effect.runPromise(
+      harness.engine.dispatch({
+        type: "thread.turn.start",
+        commandId: CommandId.make("cmd-turn-start-stale-runtime-mode"),
+        threadId: ThreadId.make("thread-1"),
+        message: {
+          messageId: asMessageId("user-message-stale-runtime-mode"),
+          role: "user",
+          text: "run supervised",
+          attachments: [],
+        },
+        interactionMode: DEFAULT_PROVIDER_INTERACTION_MODE,
+        runtimeMode: "approval-required",
+        createdAt: now,
+      }),
+    );
+
+    await waitFor(() => harness.startSession.mock.calls.length === 1);
+    await waitFor(() => harness.sendTurn.mock.calls.length === 1);
+
+    expect(harness.startSession.mock.calls[0]?.[1]).toMatchObject({
+      runtimeMode: "approval-required",
+    });
+
+    const readModel = await Effect.runPromise(harness.engine.getReadModel());
+    const thread = readModel.threads.find((entry) => entry.id === ThreadId.make("thread-1"));
+    expect(thread?.runtimeMode).toBe("full-access");
+    expect(thread?.session?.runtimeMode).toBe("approval-required");
+  });
+
   it("generates a thread title on the first turn", async () => {
     const harness = await createHarness();
     const now = new Date().toISOString();
@@ -1061,7 +1111,7 @@ describe("ProviderCommandReactor", () => {
           attachments: [],
         },
         interactionMode: DEFAULT_PROVIDER_INTERACTION_MODE,
-        runtimeMode: "full-access",
+        runtimeMode: "approval-required",
         createdAt: now,
       }),
     );

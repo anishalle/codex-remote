@@ -3471,6 +3471,96 @@ describe("ChatView timeline estimator parity (full app)", () => {
     }
   });
 
+  it("shows the sidebar interrupt action for running threads without an active turn id", async () => {
+    const mounted = await mountChatView({
+      viewport: DEFAULT_VIEWPORT,
+      snapshot: createSnapshotForTargetUser({
+        targetMessageId: "msg-user-sidebar-stop-pill" as MessageId,
+        targetText: "sidebar stop pill target",
+        sessionStatus: "running",
+      }),
+    });
+
+    try {
+      const threadRow = page.getByTestId(`thread-row-${THREAD_ID}`);
+      await expect.element(threadRow).toBeInTheDocument();
+      await threadRow.hover();
+
+      const interruptButton = await waitForElement(
+        () =>
+          document.querySelector<HTMLButtonElement>(
+            `[data-testid="thread-interrupt-${THREAD_ID}"]`,
+          ),
+        "Unable to find sidebar interrupt button.",
+      );
+
+      expect(interruptButton.textContent).toContain("Stop");
+      expect(getComputedStyle(interruptButton).cursor).toBe("pointer");
+    } finally {
+      await mounted.cleanup();
+    }
+  });
+
+  it("keeps interrupt controls visible when the latest turn is still running but the session looks ready", async () => {
+    const baseSnapshot = createSnapshotForTargetUser({
+      targetMessageId: "msg-user-stale-session-stop" as MessageId,
+      targetText: "stale session stop target",
+    });
+    const snapshot = {
+      ...baseSnapshot,
+      threads: baseSnapshot.threads.map((thread) =>
+        thread.id === THREAD_ID
+          ? {
+              ...thread,
+              latestTurn: {
+                turnId: "turn-stale-session-stop" as TurnId,
+                state: "running" as const,
+                requestedAt: isoAt(1_000),
+                startedAt: isoAt(1_001),
+                completedAt: null,
+                assistantMessageId: null,
+              },
+              session: {
+                ...thread.session,
+                status: "ready" as const,
+                activeTurnId: null,
+              },
+            }
+          : thread,
+      ),
+    };
+
+    const mounted = await mountChatView({
+      viewport: DEFAULT_VIEWPORT,
+      snapshot,
+    });
+
+    try {
+      const stopButton = await waitForElement(
+        () => document.querySelector<HTMLButtonElement>('button[aria-label="Stop generation"]'),
+        "Unable to find stop generation button for a running latest turn.",
+      );
+
+      expect(getComputedStyle(stopButton).cursor).toBe("pointer");
+
+      const threadRow = page.getByTestId(`thread-row-${THREAD_ID}`);
+      await expect.element(threadRow).toBeInTheDocument();
+      await threadRow.hover();
+
+      const interruptButton = await waitForElement(
+        () =>
+          document.querySelector<HTMLButtonElement>(
+            `[data-testid="thread-interrupt-${THREAD_ID}"]`,
+          ),
+        "Unable to find sidebar interrupt button for a running latest turn.",
+      );
+
+      expect(interruptButton.textContent).toContain("Stop");
+    } finally {
+      await mounted.cleanup();
+    }
+  });
+
   it("hides the archive action when the pointer leaves a thread row", async () => {
     const mounted = await mountChatView({
       viewport: DEFAULT_VIEWPORT,

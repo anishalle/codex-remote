@@ -17,7 +17,7 @@ COPY package.json bun.lock tsconfig.base.json ./
 COPY apps ./apps
 COPY packages ./packages
 
-RUN bun install --frozen-lockfile
+RUN BUN_INSTALL_IGNORE_SCRIPTS=1 bun install --frozen-lockfile
 RUN bun run build:web
 
 COPY apps/server/docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh

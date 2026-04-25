@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 const require_chunk = require('./chunk-DlKPiV2v.cjs');
-const require_cli = require('./cli-BjU8Fw9s.cjs');
+const require_cli = require('./cli-BuwSNSrQ.cjs');
 require('./PTY-BNE-GnF4.cjs');
 let _effect_platform_node_NodeRuntime = require("@effect/platform-node/NodeRuntime");
 _effect_platform_node_NodeRuntime = require_chunk.__toESM(_effect_platform_node_NodeRuntime);
@@ -24,6 +24,63 @@ let node_readline_promises = require("node:readline/promises");
 let node_process = require("node:process");
 node_process = require_chunk.__toESM(node_process);
 
+//#region src/t3rPush/archive.ts
+function execFileBuffer(command, args, cwd) {
+	return new Promise((resolve, reject) => {
+		(0, node_child_process.execFile)(command, [...args], {
+			cwd,
+			encoding: "buffer",
+			maxBuffer: 64 * 1024 * 1024
+		}, (error, stdout, stderr) => {
+			if (error) {
+				reject(new Error(Buffer.from(stderr).toString("utf8") || error.message));
+				return;
+			}
+			resolve(Buffer.from(stdout));
+		});
+	});
+}
+async function pathExists(targetPath) {
+	try {
+		await (0, node_fs_promises.stat)(targetPath);
+		return true;
+	} catch (error) {
+		if (error.code === "ENOENT") return false;
+		throw error;
+	}
+}
+function normalizeArchiveEntries(entries) {
+	const unique = /* @__PURE__ */ new Set();
+	for (const entry of entries) {
+		if (entry.length === 0) continue;
+		if (entry.includes("\0") || entry.includes("\n") || entry.includes("\r")) throw new Error(`t3r push cannot archive a path containing control separators: ${JSON.stringify(entry)}`);
+		unique.add(entry);
+	}
+	return [...unique];
+}
+async function collectGitArchiveEntries(workspaceRoot) {
+	const entries = (await execFileBuffer("git", [
+		"ls-files",
+		"-z",
+		"--cached",
+		"--others",
+		"--exclude-standard"
+	], workspaceRoot)).toString("utf8").split("\0").filter((entry) => entry.length > 0);
+	return normalizeArchiveEntries(await pathExists(node_path.join(workspaceRoot, ".git")) ? [".git", ...entries] : entries);
+}
+async function collectWorkspaceArchiveEntries(workspaceRoot) {
+	try {
+		return await collectGitArchiveEntries(workspaceRoot);
+	} catch {
+		return ["."];
+	}
+}
+function serializeWorkspaceArchiveEntries(entries) {
+	const normalized = normalizeArchiveEntries(entries);
+	return normalized.length > 0 ? `${normalized.join("\n")}\n` : "";
+}
+
+//#endregion
 //#region src/t3r.ts
 const DEFAULT_REMOTE_URL = "https://codex.anishalle.com";
 const INTERNAL_DAEMON_COMMAND = "__daemon";
@@ -373,6 +430,7 @@ async function createPushArchive(candidate) {
 	const tempDir = await node_fs_promises.mkdtemp(node_path.default.join(node_os.default.tmpdir(), "t3r-push-"));
 	const metadataRoot = node_path.default.join(tempDir, "metadata");
 	const metadataDir = node_path.default.join(metadataRoot, T3R_PUSH_METADATA_DIR);
+	const archiveEntriesPath = node_path.default.join(tempDir, "archive-entries.txt");
 	const archivePath = node_path.default.join(tempDir, `${candidate.repoName}.tar.gz`);
 	await node_fs_promises.mkdir(metadataDir, { recursive: true });
 	await node_fs_promises.writeFile(node_path.default.join(metadataDir, "session.jsonl"), candidate.loaded.contents, "utf8");
@@ -382,12 +440,15 @@ async function createPushArchive(candidate) {
 		sourceCwd: workspaceRoot,
 		createdAt: (/* @__PURE__ */ new Date()).toISOString()
 	}, null, 2), "utf8");
+	const archiveEntries = await collectWorkspaceArchiveEntries(workspaceRoot);
+	await node_fs_promises.writeFile(archiveEntriesPath, serializeWorkspaceArchiveEntries(archiveEntries), "utf8");
 	await runProcess("tar", [
 		"-czf",
 		archivePath,
 		"-C",
 		workspaceRoot,
-		".",
+		"-T",
+		archiveEntriesPath,
 		"-C",
 		metadataRoot,
 		T3R_PUSH_METADATA_DIR
@@ -516,7 +577,7 @@ function runDaemon() {
 		devUrl: effect.Option.none(),
 		noBrowser: effect.Option.some(true),
 		bootstrapFd: effect.Option.none(),
-		autoBootstrapProjectFromCwd: effect.Option.some(true),
+		autoBootstrapProjectFromCwd: effect.Option.some(false),
 		logWebSocketEvents: effect.Option.none(),
 		bridgeUrl: effect.Option.some(remoteUrl),
 		bridgeTokenFile: effect.Option.some(paths.tokenPath),

@@ -1,19 +1,19 @@
-import * as NodeSocket from "@effect/platform-node/NodeSocket";
 import {
+  type AuthSessionId,
   type EnvironmentId,
   type ExecutionEnvironmentDescriptor,
   WsRpcGroup,
 } from "@t3tools/contracts";
-import { Effect, Exit, Layer, ManagedRuntime, Scope, Stream } from "effect";
-import { RpcClient, RpcSerialization } from "effect/unstable/rpc";
-import * as Socket from "effect/unstable/socket/Socket";
+import { Context, Effect, Exit, Layer, ManagedRuntime, Scope, Stream } from "effect";
+import { RpcTest } from "effect/unstable/rpc";
 
 import type { LocalBridgeCommand } from "./LocalBridgeRegistry.ts";
+import { makeWsRpcLayer } from "../ws.ts";
 
 interface LocalBridgeClientInput {
   readonly publicHttpBaseUrl: string;
   readonly publicBearerToken: string;
-  readonly localWsUrl: string;
+  readonly localSessionId: AuthSessionId;
   readonly environment: ExecutionEnvironmentDescriptor;
   readonly startedAt: string;
 }
@@ -22,7 +22,7 @@ interface BridgePollResponse {
   readonly commands: ReadonlyArray<LocalBridgeCommand>;
 }
 
-const makeWsRpcClient = RpcClient.make(WsRpcGroup);
+const makeWsRpcClient = RpcTest.makeClient(WsRpcGroup);
 type WsRpcClient = typeof makeWsRpcClient extends Effect.Effect<infer Client, any, any>
   ? Client
   : never;
@@ -66,27 +66,16 @@ function formatBridgeError(error: unknown): string {
 }
 
 class LocalNodeRpcClient {
-  private readonly runtime: ManagedRuntime.ManagedRuntime<RpcClient.Protocol, never>;
+  private readonly runtime: ManagedRuntime.ManagedRuntime<never, never>;
   private readonly scope: Scope.Closeable;
   private readonly client: Promise<WsRpcClient>;
 
-  constructor(localWsUrl: string) {
-    const webSocketConstructorLayer = Layer.succeed(
-      Socket.WebSocketConstructor,
-      (socketUrl, protocols) =>
-        new NodeSocket.NodeWS.WebSocket(socketUrl, protocols) as unknown as globalThis.WebSocket,
-    );
-    const socketLayer = Socket.layerWebSocket(localWsUrl).pipe(
-      Layer.provide(webSocketConstructorLayer),
-    );
-    this.runtime = ManagedRuntime.make(
-      RpcClient.layerProtocolSocket().pipe(
-        Layer.provide(socketLayer),
-        Layer.provide(RpcSerialization.layerJson),
-      ),
-    );
+  constructor(localSessionId: AuthSessionId, context: Context.Context<unknown>) {
+    this.runtime = ManagedRuntime.make(Layer.succeedContext(context));
     this.scope = this.runtime.runSync(Scope.make());
-    this.client = this.runtime.runPromise(Scope.provide(this.scope)(makeWsRpcClient));
+    this.client = this.runtime.runPromise(
+      Scope.provide(this.scope)(makeWsRpcClient.pipe(Effect.provide(makeWsRpcLayer(localSessionId)))),
+    );
   }
 
   async request(method: string, payload: unknown): Promise<unknown> {
@@ -218,47 +207,42 @@ async function handleCommand(input: {
   }
 }
 
-async function runBridgeLoop(input: LocalBridgeClientInput): Promise<void> {
-  const rpc = new LocalNodeRpcClient(input.localWsUrl);
-  try {
+async function runBridgeLoop(input: LocalBridgeClientInput, rpc: LocalNodeRpcClient): Promise<void> {
+  for (;;) {
+    await postJson({
+      baseUrl: input.publicHttpBaseUrl,
+      token: input.publicBearerToken,
+      pathname: "/api/local-bridge/register",
+      body: {
+        environment: {
+          ...input.environment,
+          origin: "local",
+        },
+        startedAt: input.startedAt,
+      },
+    });
+
     for (;;) {
-      await postJson({
+      const response = await postJson<BridgePollResponse>({
         baseUrl: input.publicHttpBaseUrl,
         token: input.publicBearerToken,
-        pathname: "/api/local-bridge/register",
+        pathname: "/api/local-bridge/poll",
         body: {
-          environment: {
-            ...input.environment,
-            origin: "local",
-          },
-          startedAt: input.startedAt,
+          environmentId: input.environment.environmentId,
         },
       });
-
-      for (;;) {
-        const response = await postJson<BridgePollResponse>({
-          baseUrl: input.publicHttpBaseUrl,
-          token: input.publicBearerToken,
-          pathname: "/api/local-bridge/poll",
-          body: {
-            environmentId: input.environment.environmentId,
-          },
-        });
-        for (const command of response.commands) {
-          void handleCommand({
-            bridge: input,
-            rpc,
-            command,
-          }).catch((error) => {
-            console.warn("Local bridge command failed", {
-              error: formatBridgeError(error),
-            });
+      for (const command of response.commands) {
+        void handleCommand({
+          bridge: input,
+          rpc,
+          command,
+        }).catch((error) => {
+          console.warn("Local bridge command failed", {
+            error: formatBridgeError(error),
           });
-        }
+        });
       }
     }
-  } finally {
-    await rpc.close();
   }
 }
 
@@ -268,16 +252,22 @@ export function runLocalBridgeClient(input: LocalBridgeClientInput): Effect.Effe
       publicHttpBaseUrl: input.publicHttpBaseUrl,
       environmentId: input.environment.environmentId,
     });
+    const runtimeContext = Context.omit(Scope.Scope)(yield* Effect.context<never>());
     return yield* Effect.promise<never>(async () => {
-      for (;;) {
-        try {
-          await runBridgeLoop(input);
-        } catch (error) {
-          console.warn("Local bridge client stopped", {
-            error: formatBridgeError(error),
-          });
-          await new Promise((resolve) => setTimeout(resolve, 2_000));
+      const rpc = new LocalNodeRpcClient(input.localSessionId, runtimeContext);
+      try {
+        for (;;) {
+          try {
+            await runBridgeLoop(input, rpc);
+          } catch (error) {
+            console.warn("Local bridge client stopped", {
+              error: formatBridgeError(error),
+            });
+            await new Promise((resolve) => setTimeout(resolve, 2_000));
+          }
         }
+      } finally {
+        await rpc.close();
       }
     });
   });

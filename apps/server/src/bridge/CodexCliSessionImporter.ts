@@ -18,14 +18,19 @@ import * as path from "node:path";
 
 import { ServerConfig } from "../config.ts";
 import { OrchestrationEngineService } from "../orchestration/Services/OrchestrationEngine.ts";
-import { ProviderSessionDirectory } from "../provider/Services/ProviderSessionDirectory.ts";
+import {
+  ProviderSessionDirectory,
+  type ProviderRuntimeBinding,
+} from "../provider/Services/ProviderSessionDirectory.ts";
 import { LOCAL_BRIDGE_SERVER_STARTED_AT_MS } from "./localBridgeTiming.ts";
 
 const CODEX_CLI_PROJECT_ID_PREFIX = "codex-cli-project:";
 const CODEX_CLI_THREAD_ID_PREFIX = "codex-cli:";
 const CODEX_CLI_COMMAND_ID_PREFIX = "server:codex-cli-import:";
+const CODEX_CLI_IMPORT_RUNTIME_SOURCE = "codex-cli-import";
 const CODEX_CLI_SCAN_INTERVAL = Duration.seconds(2);
 const STARTUP_LOOKBACK_MS = 10 * 60_000;
+const CODEX_CLI_ACTIVE_WINDOW_MS = 30_000;
 const MAX_TITLE_LENGTH = 80;
 const MAX_TOOL_TEXT_LENGTH = 20_000;
 
@@ -95,6 +100,79 @@ export function codexCliThreadIdForSessionId(sessionId: string): ThreadId {
 
 function commandId(tag: string): CommandId {
   return CommandId.make(`${CODEX_CLI_COMMAND_ID_PREFIX}${tag}:${crypto.randomUUID()}`);
+}
+
+function readResumeCursorThreadId(resumeCursor: unknown): string | undefined {
+  if (!resumeCursor || typeof resumeCursor !== "object" || Array.isArray(resumeCursor)) {
+    return undefined;
+  }
+  const rawThreadId = (resumeCursor as { readonly threadId?: unknown }).threadId;
+  return typeof rawThreadId === "string" && rawThreadId.trim().length > 0
+    ? rawThreadId.trim()
+    : undefined;
+}
+
+function readRuntimePayloadSource(runtimePayload: unknown): string | undefined {
+  if (!runtimePayload || typeof runtimePayload !== "object" || Array.isArray(runtimePayload)) {
+    return undefined;
+  }
+  const rawSource = (runtimePayload as { readonly source?: unknown }).source;
+  return typeof rawSource === "string" && rawSource.trim().length > 0 ? rawSource.trim() : undefined;
+}
+
+function inferCodexCliSessionStatus(
+  updatedAt: string,
+): "running" | "ready" {
+  const updatedAtMs = Date.parse(updatedAt);
+  if (Number.isNaN(updatedAtMs)) {
+    return "ready";
+  }
+  return Date.now() - updatedAtMs <= CODEX_CLI_ACTIVE_WINDOW_MS ? "running" : "ready";
+}
+
+function shouldReviveArchivedCodexCliThread(input: {
+  readonly archivedAt: string | null;
+  readonly sessionUpdatedAt: string;
+  readonly sessionStatus: "running" | "ready";
+}): boolean {
+  if (input.archivedAt === null) {
+    return false;
+  }
+  if (input.sessionStatus === "running") {
+    return true;
+  }
+  const archivedAtMs = Date.parse(input.archivedAt);
+  const updatedAtMs = Date.parse(input.sessionUpdatedAt);
+  if (Number.isNaN(archivedAtMs) || Number.isNaN(updatedAtMs)) {
+    return false;
+  }
+  return updatedAtMs > archivedAtMs;
+}
+
+function isCodexCliImportBinding(
+  sessionId: string,
+  binding: ProviderRuntimeBinding | undefined,
+): boolean {
+  if (!binding || binding.provider !== "codex") {
+    return false;
+  }
+  if (readResumeCursorThreadId(binding.resumeCursor) !== sessionId) {
+    return false;
+  }
+  return readRuntimePayloadSource(binding.runtimePayload) === CODEX_CLI_IMPORT_RUNTIME_SOURCE;
+}
+
+export function shouldImportCodexCliTranscript(
+  sessionId: string,
+  binding: ProviderRuntimeBinding | undefined,
+): boolean {
+  if (!binding || binding.provider !== "codex") {
+    return true;
+  }
+  if (readResumeCursorThreadId(binding.resumeCursor) !== sessionId) {
+    return true;
+  }
+  return readRuntimePayloadSource(binding.runtimePayload) === CODEX_CLI_IMPORT_RUNTIME_SOURCE;
 }
 
 function codexCliMessageId(sessionId: string, sourceIndex: number): MessageId {
@@ -499,6 +577,8 @@ export const importCodexCliSessionReadModel = Effect.fn("importCodexCliSessionRe
   session: ParsedCodexCliSession,
 ) {
   const orchestrationEngine = yield* OrchestrationEngineService;
+  const providerSessionDirectory = yield* ProviderSessionDirectory;
+  const desiredSessionStatus = inferCodexCliSessionStatus(session.updatedAt);
   const readModel = yield* orchestrationEngine.getReadModel();
   const existingProject = readModel.projects.find(
     (project) => project.deletedAt === null && project.workspaceRoot === session.cwd,
@@ -537,6 +617,30 @@ export const importCodexCliSessionReadModel = Effect.fn("importCodexCliSessionRe
 
   const afterThreadReadModel = yield* orchestrationEngine.getReadModel();
   const afterThread = afterThreadReadModel.threads.find((thread) => thread.id === threadId);
+  if (
+    shouldReviveArchivedCodexCliThread({
+      archivedAt: afterThread?.archivedAt ?? null,
+      sessionUpdatedAt: session.updatedAt,
+      sessionStatus: desiredSessionStatus,
+    })
+  ) {
+    yield* orchestrationEngine.dispatch({
+      type: "thread.unarchive",
+      commandId: commandId("thread-unarchive"),
+      threadId,
+    });
+  }
+
+  const existingBinding = Option.getOrUndefined(
+    yield* providerSessionDirectory.getBinding(threadId),
+  );
+  if (!shouldImportCodexCliTranscript(session.sessionId, existingBinding)) {
+    return {
+      projectId,
+      threadId,
+    };
+  }
+
   const existingMessages = new Map(afterThread?.messages.map((message) => [message.id, message]));
   for (const message of session.messages) {
     const existingMessage = existingMessages.get(message.messageId);
@@ -588,14 +692,17 @@ export const importCodexCliSessionReadModel = Effect.fn("importCodexCliSessionRe
 
   const latestReadModel = yield* orchestrationEngine.getReadModel();
   const latestThread = latestReadModel.threads.find((thread) => thread.id === threadId);
-  if (latestThread?.session?.updatedAt !== session.updatedAt) {
+  if (
+    latestThread?.session?.updatedAt !== session.updatedAt ||
+    latestThread.session?.status !== desiredSessionStatus
+  ) {
     yield* orchestrationEngine.dispatch({
       type: "thread.session.set",
       commandId: commandId("thread-session"),
       threadId,
       session: {
         threadId,
-        status: "ready",
+        status: desiredSessionStatus,
         providerName: "codex",
         runtimeMode: "full-access",
         activeTurnId: null,
@@ -617,12 +724,15 @@ export const importCodexCliSession = Effect.fn("importCodexCliSession")(function
 ) {
   const imported = yield* importCodexCliSessionReadModel(session);
   const providerSessionDirectory = yield* ProviderSessionDirectory;
+  const desiredSessionStatus = inferCodexCliSessionStatus(session.updatedAt);
   const threadId = imported.threadId;
 
   const existingBinding = yield* providerSessionDirectory.getBinding(threadId);
   const binding = Option.getOrUndefined(existingBinding);
   if (binding?.resumeCursor !== undefined && binding.resumeCursor !== null) {
-    return;
+    if (!isCodexCliImportBinding(session.sessionId, binding)) {
+      return;
+    }
   }
 
   yield* providerSessionDirectory.upsert({
@@ -635,7 +745,7 @@ export const importCodexCliSession = Effect.fn("importCodexCliSession")(function
       cwd: session.cwd,
       model: session.modelSelection.model,
       modelSelection: session.modelSelection,
-      source: "codex-cli-import",
+      source: CODEX_CLI_IMPORT_RUNTIME_SOURCE,
       importedAt: new Date().toISOString(),
     },
   });

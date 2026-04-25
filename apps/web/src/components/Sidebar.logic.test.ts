@@ -513,6 +513,41 @@ describe("resolveThreadStatusPill", () => {
     ).toMatchObject({ label: "Working", pulse: true });
   });
 
+  it("keeps showing working when orchestration state is running but the legacy session status is ready", () => {
+    expect(
+      resolveThreadStatusPill({
+        thread: {
+          ...baseThread,
+          session: {
+            ...baseThread.session,
+            status: "ready",
+            orchestrationStatus: "running",
+          },
+        },
+      }),
+    ).toMatchObject({ label: "Working", pulse: true });
+  });
+
+  it("keeps showing working when the latest turn is still running even if the session looks ready", () => {
+    expect(
+      resolveThreadStatusPill({
+        thread: {
+          ...baseThread,
+          latestTurn: {
+            ...makeLatestTurn(),
+            state: "running",
+            completedAt: null,
+          },
+          session: {
+            ...baseThread.session,
+            status: "ready",
+            orchestrationStatus: "ready",
+          },
+        },
+      }),
+    ).toMatchObject({ label: "Working", pulse: true });
+  });
+
   it("shows plan ready when a settled plan turn has a proposed plan ready for follow-up", () => {
     expect(
       resolveThreadStatusPill({

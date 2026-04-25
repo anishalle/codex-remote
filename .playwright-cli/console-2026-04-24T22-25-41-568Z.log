@@ -1,0 +1,91 @@
+[     547ms] [ERROR] Failed to load resource: the server responded with a status of 401 (Unauthorized) @ http://127.0.0.1:3773/api/auth/bootstrap:0
+[  917679ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3773/api/observability/v1/traces:0
+[  918687ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3773/api/observability/v1/traces:0
+[  919689ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3773/api/observability/v1/traces:0
+[  920693ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3773/api/observability/v1/traces:0
+[  930675ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:3773/ws' failed: Invalid frame header @ http://127.0.0.1:3773/assets/index-CioZfe0W.js:33
+[  930721ms] [WARNING] WebSocket RPC subscription failed {error: SocketReadError: An error occurred during Read} @ http://127.0.0.1:3773/assets/index-CioZfe0W.js:33
+[  930726ms] [WARNING] WebSocket RPC subscription failed {error: SocketReadError: An error occurred during Read} @ http://127.0.0.1:3773/assets/index-CioZfe0W.js:33
+[  930726ms] [WARNING] WebSocket RPC subscription failed {error: SocketReadError: An error occurred during Read} @ http://127.0.0.1:3773/assets/index-CioZfe0W.js:33
+[  930726ms] [WARNING] WebSocket RPC subscription failed {error: SocketReadError: An error occurred during Read} @ http://127.0.0.1:3773/assets/index-CioZfe0W.js:33
+[  930726ms] [WARNING] WebSocket RPC subscription failed {error: SocketReadError: An error occurred during Read} @ http://127.0.0.1:3773/assets/index-CioZfe0W.js:33
+[  930726ms] [WARNING] WebSocket RPC subscription failed {error: SocketReadError: An error occurred during Read} @ http://127.0.0.1:3773/assets/index-CioZfe0W.js:33
+[  930726ms] [WARNING] WebSocket RPC subscription failed {error: SocketReadError: An error occurred during Read} @ http://127.0.0.1:3773/assets/index-CioZfe0W.js:33
+[  930726ms] [WARNING] WebSocket RPC subscription failed {error: SocketReadError: An error occurred during Read} @ http://127.0.0.1:3773/assets/index-CioZfe0W.js:33
+[  930726ms] [WARNING] WebSocket RPC subscription failed {error: SocketReadError: An error occurred during Read} @ http://127.0.0.1:3773/assets/index-CioZfe0W.js:33
+[  930726ms] [WARNING] WebSocket RPC subscription failed {error: SocketReadError: An error occurred during Read} @ http://127.0.0.1:3773/assets/index-CioZfe0W.js:33
+[  930726ms] [WARNING] WebSocket RPC subscription failed {error: SocketReadError: An error occurred during Read} @ http://127.0.0.1:3773/assets/index-CioZfe0W.js:33
+[  930726ms] [WARNING] WebSocket RPC subscription failed {error: SocketReadError: An error occurred during Read} @ http://127.0.0.1:3773/assets/index-CioZfe0W.js:33
+[  930726ms] [WARNING] WebSocket RPC subscription failed {error: SocketReadError: An error occurred during Read} @ http://127.0.0.1:3773/assets/index-CioZfe0W.js:33
+[ 2526832ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:3773/ws' failed: Invalid frame header @ http://127.0.0.1:3773/assets/index-CioZfe0W.js:33
+[ 5143548ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:3773/ws' failed: Invalid frame header @ http://127.0.0.1:3773/assets/index-CioZfe0W.js:33
+[13104865ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3773/api/observability/v1/traces:0
+[13105872ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3773/api/observability/v1/traces:0
+[13106876ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3773/api/observability/v1/traces:0
+[13107184ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:3773/ws' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3773/assets/index-CioZfe0W.js:33
+[13107882ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3773/api/observability/v1/traces:0
+[13109706ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:3773/ws' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3773/assets/index-CioZfe0W.js:33
+[13110718ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:3773/ws' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3773/assets/index-CioZfe0W.js:33
+[13112727ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:3773/ws' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3773/assets/index-CioZfe0W.js:33
+[13116754ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:3773/ws' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3773/assets/index-CioZfe0W.js:33
+[13124782ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:3773/ws' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3773/assets/index-CioZfe0W.js:33
+[13140829ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:3773/ws' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3773/assets/index-CioZfe0W.js:33
+[13172869ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:3773/ws' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3773/assets/index-CioZfe0W.js:33
+[13236887ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:3773/ws' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3773/assets/index-CioZfe0W.js:33
+[16209011ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:3773/ws' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3773/assets/index-CioZfe0W.js:33
+[16210023ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:3773/ws' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3773/assets/index-CioZfe0W.js:33
+[16210765ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3773/api/observability/v1/traces:0
+[16211771ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3773/api/observability/v1/traces:0
+[16212035ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:3773/ws' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3773/assets/index-CioZfe0W.js:33
+[16212775ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3773/api/observability/v1/traces:0
+[16213781ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3773/api/observability/v1/traces:0
+[16216042ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:3773/ws' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3773/assets/index-CioZfe0W.js:33
+[16224056ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:3773/ws' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3773/assets/index-CioZfe0W.js:33
+[16341416ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:3773/ws' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3773/assets/index-CioZfe0W.js:33
+[16356411ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:3773/ws' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3773/assets/index-CioZfe0W.js:33
+[16357431ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:3773/ws' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3773/assets/index-CioZfe0W.js:33
+[16357451ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3773/api/observability/v1/traces:0
+[16358459ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3773/api/observability/v1/traces:0
+[16359464ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3773/api/observability/v1/traces:0
+[16359486ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:3773/ws' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3773/assets/index-CioZfe0W.js:33
+[16360469ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3773/api/observability/v1/traces:0
+[16363538ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:3773/ws' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3773/assets/index-CioZfe0W.js:33
+[16371650ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:3773/ws' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3773/assets/index-CioZfe0W.js:33
+[16494913ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:3773/ws' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3773/assets/index-CioZfe0W.js:33
+[16510077ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:3773/ws' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3773/assets/index-CioZfe0W.js:33
+[16510959ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3773/api/observability/v1/traces:0
+[16511967ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3773/api/observability/v1/traces:0
+[16512305ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:3773/ws' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3773/assets/index-CioZfe0W.js:33
+[16512972ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3773/api/observability/v1/traces:0
+[16513976ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3773/api/observability/v1/traces:0
+[16516100ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:3773/ws' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3773/assets/index-CioZfe0W.js:33
+[16520110ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:3773/ws' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3773/assets/index-CioZfe0W.js:33
+[16528116ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:3773/ws' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3773/assets/index-CioZfe0W.js:33
+[16533865ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:3773/ws' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3773/assets/index-CioZfe0W.js:33
+[16534874ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:3773/ws' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3773/assets/index-CioZfe0W.js:33
+[16536883ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:3773/ws' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3773/assets/index-CioZfe0W.js:33
+[16541431ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:3773/ws' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3773/assets/index-CioZfe0W.js:33
+[16549448ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:3773/ws' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3773/assets/index-CioZfe0W.js:33
+[16565480ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:3773/ws' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3773/assets/index-CioZfe0W.js:33
+[16582394ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:3773/ws' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3773/assets/index-CioZfe0W.js:33
+[16583446ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:3773/ws' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3773/assets/index-CioZfe0W.js:33
+[16584014ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3773/api/observability/v1/traces:0
+[16585033ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3773/api/observability/v1/traces:0
+[16585568ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:3773/ws' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3773/assets/index-CioZfe0W.js:33
+[16601083ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3773/api/observability/v1/traces:0
+[16602086ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3773/api/observability/v1/traces:0
+[16604799ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:3773/ws' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3773/assets/index-CioZfe0W.js:33
+[16613350ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:3773/ws' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3773/assets/index-CioZfe0W.js:33
+[16629747ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:3773/ws' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3773/assets/index-CioZfe0W.js:33
+[17902980ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:3773/ws' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3773/assets/index-CioZfe0W.js:33
+[17904036ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:3773/ws' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3773/assets/index-CioZfe0W.js:33
+[17904700ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3773/api/observability/v1/traces:0
+[17905704ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3773/api/observability/v1/traces:0
+[17906048ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:3773/ws' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3773/assets/index-CioZfe0W.js:33
+[17906711ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3773/api/observability/v1/traces:0
+[17907717ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3773/api/observability/v1/traces:0
+[17910059ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:3773/ws' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3773/assets/index-CioZfe0W.js:33
+[17918071ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:3773/ws' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3773/assets/index-CioZfe0W.js:33
+[17934084ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:3773/ws' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3773/assets/index-CioZfe0W.js:33
+[17979840ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:3773/ws' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3773/assets/index-CioZfe0W.js:33
+[18046837ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:3773/ws' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3773/assets/index-CioZfe0W.js:33

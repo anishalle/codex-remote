@@ -1,0 +1,237 @@
+- generic [ref=e1]:
+  - generic [ref=e3]:
+    - generic [ref=e6]:
+      - link "Go to threads" [ref=e9] [cursor=pointer]:
+        - /url: /
+        - img "T3" [ref=e10]
+        - generic [ref=e12]: Code
+        - generic [ref=e13]: Alpha
+      - generic [ref=e15]:
+        - list [ref=e17]:
+          - listitem [ref=e18]:
+            - button "Search ⌘K" [ref=e45] [cursor=pointer]:
+              - img [ref=e20]
+              - generic [ref=e23]: Search
+              - generic: ⌘K
+        - generic [ref=e24]:
+          - generic [ref=e25]:
+            - generic [ref=e26]: Projects
+            - generic [ref=e27]:
+              - button [ref=e28] [cursor=pointer]:
+                - img [ref=e29]
+              - button "Add project" [ref=e32] [cursor=pointer]:
+                - img [ref=e33]
+          - list [ref=e46]:
+            - listitem [ref=e47]:
+              - generic [ref=e48]:
+                - button "anishalle/codex-remote local 2 projects" [ref=e49] [cursor=pointer]:
+                  - img [ref=e50]
+                  - generic [ref=e52]:
+                    - generic [ref=e53]: anishalle/codex-remote
+                    - generic [ref=e54]: local
+                    - generic [ref=e55]: 2 projects
+                - generic:
+                  - button "Create new thread in anishalle/codex-remote":
+                    - img
+              - list [ref=e56]:
+                - listitem [ref=e57]:
+                  - button "The following is the Codex agent history whose request action you are assessing Archive The following is the Codex agent history whose request action you are assessing 4h ago" [ref=e58] [cursor=pointer]:
+                    - generic [ref=e60]: The following is the Codex agent history whose request action you are assessing
+                    - generic [ref=e62]:
+                      - generic:
+                        - button "Archive The following is the Codex agent history whose request action you are assessing":
+                          - img
+                      - generic:
+                        - generic:
+                          - generic: 4h ago
+                - listitem [ref=e63]:
+                  - button "we're still getting the double counting error when we send messages from the SE Archive we're still getting the double counting error when we send messages from the SE 4h ago" [ref=e64] [cursor=pointer]:
+                    - generic [ref=e66]: we're still getting the double counting error when we send messages from the SE
+                    - generic [ref=e68]:
+                      - generic:
+                        - button "Archive we're still getting the double counting error when we send messages from the SE":
+                          - img
+                      - generic:
+                        - generic:
+                          - generic: 4h ago
+                - listitem [ref=e69]:
+                  - button "codex, respond with ONLY a \"hi\" Archive codex, respond with ONLY a \"hi\" 4h ago" [ref=e70] [cursor=pointer]:
+                    - generic [ref=e72]: codex, respond with ONLY a "hi"
+                    - generic [ref=e74]:
+                      - generic:
+                        - button "Archive codex, respond with ONLY a \"hi\"":
+                          - img
+                      - generic:
+                        - generic:
+                          - generic: 4h ago
+                - listitem [ref=e75]:
+                  - button "codex resume 019dbe5a-242b-76b2-94bd-7e404b216fac Archive codex resume 019dbe5a-242b-76b2-94bd-7e404b216fac 12h ago" [ref=e76] [cursor=pointer]:
+                    - generic [ref=e78]: codex resume 019dbe5a-242b-76b2-94bd-7e404b216fac
+                    - generic [ref=e80]:
+                      - generic:
+                        - button "Archive codex resume 019dbe5a-242b-76b2-94bd-7e404b216fac":
+                          - img
+                      - generic:
+                        - generic:
+                          - generic: 12h ago
+                - listitem [ref=e81]:
+                  - button "Completed okay, we are in the t3 branch, which is a 1:1 representation of t3code (it's li Archive okay, we are in the t3 branch, which is a 1:1 representation of t3code (it's li 12h ago" [ref=e82] [cursor=pointer]:
+                    - generic [ref=e83]:
+                      - generic "Completed" [ref=e84]:
+                        - generic [ref=e86]: Completed
+                      - generic [ref=e87]: okay, we are in the t3 branch, which is a 1:1 representation of t3code (it's li
+                    - generic [ref=e89]:
+                      - generic:
+                        - button "Archive okay, we are in the t3 branch, which is a 1:1 representation of t3code (it's li":
+                          - img
+                      - generic:
+                        - generic:
+                          - generic: 12h ago
+                - listitem [ref=e90]:
+                  - button "Reply with hi only Archive Reply with hi only 13h ago" [ref=e91] [cursor=pointer]:
+                    - generic [ref=e93]: Reply with hi only
+                    - generic [ref=e95]:
+                      - generic:
+                        - button "Archive Reply with hi only":
+                          - img
+                      - generic:
+                        - generic:
+                          - generic: 13h ago
+                - listitem [ref=e96]:
+                  - button "Show more" [ref=e97] [cursor=pointer]:
+                    - generic [ref=e99]: Show more
+            - listitem [ref=e100]:
+              - generic [ref=e101]:
+                - button "claude-code-main local" [ref=e102] [cursor=pointer]:
+                  - img [ref=e103]
+                  - generic [ref=e105]:
+                    - generic [ref=e106]: claude-code-main
+                    - generic [ref=e107]: local
+                - generic:
+                  - button "Create new thread in claude-code-main":
+                    - img
+              - list [ref=e108]:
+                - listitem [ref=e109]:
+                  - generic [ref=e111]: No threads yet
+      - separator [ref=e35]
+      - list [ref=e37]:
+        - listitem [ref=e38]:
+          - button "Settings" [ref=e39] [cursor=pointer]:
+            - img [ref=e40]
+            - generic [ref=e43]: Settings
+      - button "Resize Sidebar" [ref=e44]
+    - main [ref=e112]:
+      - generic [ref=e113]:
+        - generic [ref=e115]:
+          - generic [ref=e116]:
+            - heading "Simple Greeting Reply" [level=2] [ref=e117]
+            - generic [ref=e119]: codex-remote
+          - generic [ref=e120]:
+            - button "Add action" [ref=e121] [cursor=pointer]:
+              - img
+              - generic [ref=e122]: Add action
+            - group "Subscription actions" [ref=e123]:
+              - button "Open" [ref=e124] [cursor=pointer]:
+                - img
+                - generic [ref=e125]: Open
+              - separator
+              - button "Copy options" [ref=e126] [cursor=pointer]:
+                - img
+            - group "Git actions" [ref=e127]:
+              - button "Commit, push & PR" [ref=e128] [cursor=pointer]:
+                - img
+                - generic [ref=e129]: Commit, push & PR
+              - separator
+              - button "Git action options" [ref=e130] [cursor=pointer]:
+                - img
+            - button "Toggle terminal drawer" [ref=e131] [cursor=pointer]:
+              - img
+            - button "Toggle diff panel" [ref=e132] [cursor=pointer]:
+              - img
+        - generic [ref=e134]:
+          - generic [ref=e140]:
+            - generic [ref=e145]:
+              - generic [ref=e146]: say Hi, nothing else
+              - generic [ref=e147]:
+                - generic [ref=e148]:
+                  - button "Copy link" [ref=e149] [cursor=pointer]:
+                    - img
+                  - button "Revert to this message" [ref=e150] [cursor=pointer]:
+                    - img
+                - paragraph [ref=e151]: 11:15:59 PM
+            - generic [ref=e155]:
+              - paragraph [ref=e157]: Hi
+              - generic [ref=e158]:
+                - paragraph [ref=e159]: 11:16:04 PM • 4.7s
+                - button "Copy link" [ref=e161] [cursor=pointer]:
+                  - img
+          - generic [ref=e167]:
+            - generic [ref=e169]:
+              - textbox [ref=e170]:
+                - paragraph [ref=e171]
+              - generic: Ask for follow-up changes or attach images
+            - generic [ref=e172]:
+              - generic [ref=e173]:
+                - button "GPT-5.3-Codex-Spark" [ref=e270] [cursor=pointer]:
+                  - generic [ref=e175]:
+                    - img
+                    - generic [ref=e176]: GPT-5.3-Codex-Spark
+                    - img
+                - separator [ref=e177]
+                - button "Low" [ref=e293] [cursor=pointer]:
+                  - generic [ref=e179]:
+                    - text: Low
+                    - img
+                - separator [ref=e180]
+                - button "Build" [ref=e181] [cursor=pointer]:
+                  - img
+                  - generic [ref=e182]: Build
+                - separator [ref=e183]
+                - combobox "Runtime mode" [expanded] [ref=e184] [cursor=pointer]:
+                  - img
+                  - generic [ref=e185]: Full access
+                  - generic [ref=e186]:
+                    - img
+                - listbox [ref=e300]:
+                  - option "Supervised Ask before commands and file changes." [ref=e301]:
+                    - generic [ref=e303]:
+                      - generic [ref=e304]:
+                        - img
+                        - text: Supervised
+                      - generic [ref=e305]: Ask before commands and file changes.
+                  - option "Auto-accept edits Auto-approve edits, ask before other actions." [ref=e306]:
+                    - generic [ref=e308]:
+                      - generic [ref=e309]:
+                        - img
+                        - text: Auto-accept edits
+                      - generic [ref=e310]: Auto-approve edits, ask before other actions.
+                  - option "Full access Allow commands and edits without prompts." [active] [selected] [ref=e311]:
+                    - generic [ref=e312]:
+                      - img
+                    - generic [ref=e314]:
+                      - generic [ref=e315]:
+                        - img
+                        - text: Full access
+                      - generic [ref=e316]: Allow commands and edits without prompts.
+                - textbox [ref=e187]: full-access
+              - generic [ref=e188]:
+                - button "Context window 5.7% used" [ref=e189]:
+                  - generic [ref=e190]:
+                    - img [ref=e191]
+                    - generic [ref=e194]: "6"
+                - button "Send message" [disabled]:
+                  - img
+          - generic [ref=e195]:
+            - generic [ref=e197]:
+              - img [ref=e198]
+              - text: Local checkout
+            - combobox [ref=e200] [cursor=pointer]:
+              - generic [ref=e201]: t3
+              - img
+            - textbox [ref=e202]: t3
+    - generic [ref=e204]:
+      - button "Toggle Sidebar"
+  - generic:
+    - region "Notifications"
+  - generic:
+    - region "Notifications"

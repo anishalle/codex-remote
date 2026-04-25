@@ -162,6 +162,7 @@ import {
   ThreadStatusPill,
 } from "./Sidebar.logic";
 import { sortThreads } from "../lib/threadSort";
+import { isThreadActivelyRunning } from "../session-logic";
 import { SidebarUpdatePill } from "./sidebar/SidebarUpdatePill";
 import { useCopyToClipboard } from "~/hooks/useCopyToClipboard";
 import { CommandDialogTrigger } from "./ui/command";
@@ -357,8 +358,7 @@ const SidebarThreadRow = memo(function SidebarThreadRow(props: SidebarThreadRowP
     cwd: thread.branch != null ? gitCwd : null,
   });
   const isHighlighted = isActive || isSelected;
-  const isThreadRunning =
-    thread.session?.status === "running" && thread.session.activeTurnId != null;
+  const isThreadRunning = isThreadActivelyRunning(thread);
   const threadStatus = resolveThreadStatusPill({
     thread: {
       ...thread,
@@ -524,6 +524,33 @@ const SidebarThreadRow = memo(function SidebarThreadRow(props: SidebarThreadRowP
     },
     [attemptArchiveThread, threadRef],
   );
+  const handleInterruptClick = useCallback(
+    (event: React.MouseEvent<HTMLButtonElement>) => {
+      event.preventDefault();
+      event.stopPropagation();
+      const api = readEnvironmentApi(thread.environmentId);
+      if (!api) {
+        return;
+      }
+      void api.orchestration
+        .dispatchCommand({
+          type: "thread.turn.interrupt",
+          commandId: newCommandId(),
+          threadId: threadRef.threadId,
+          createdAt: new Date().toISOString(),
+        })
+        .catch((error: unknown) => {
+          toastManager.add(
+            stackedThreadToast({
+              type: "error",
+              title: "Failed to interrupt thread",
+              description: error instanceof Error ? error.message : "An error occurred.",
+            }),
+          );
+        });
+    },
+    [thread.environmentId, threadRef.threadId],
+  );
   const rowButtonRender = useMemo(() => <div role="button" tabIndex={0} />, []);
 
   return (
@@ -618,7 +645,19 @@ const SidebarThreadRow = memo(function SidebarThreadRow(props: SidebarThreadRowP
               >
                 Confirm
               </button>
-            ) : !isThreadRunning ? (
+            ) : isThreadRunning ? (
+              <button
+                type="button"
+                data-thread-selection-safe
+                data-testid={`thread-interrupt-${thread.id}`}
+                aria-label={`Interrupt ${thread.title}`}
+                className="inline-flex h-5 cursor-pointer items-center rounded-full bg-sky-500/12 px-2 text-[10px] font-medium text-sky-700 transition-colors hover:bg-sky-500/18 focus-visible:outline-hidden focus-visible:ring-1 focus-visible:ring-sky-500/40 dark:text-sky-200"
+                onPointerDown={stopPropagationOnPointerDown}
+                onClick={handleInterruptClick}
+              >
+                Stop
+              </button>
+            ) : (
               appSettingsConfirmThreadArchive ? (
                 <div className="pointer-events-none absolute top-1/2 right-1 -translate-y-1/2 opacity-0 transition-opacity duration-150 group-hover/menu-sub-item:pointer-events-auto group-hover/menu-sub-item:opacity-100 group-focus-within/menu-sub-item:pointer-events-auto group-focus-within/menu-sub-item:opacity-100">
                   <button
@@ -655,46 +694,48 @@ const SidebarThreadRow = memo(function SidebarThreadRow(props: SidebarThreadRowP
                   <TooltipPopup side="top">Archive</TooltipPopup>
                 </Tooltip>
               )
-            ) : null}
-            <span className={threadMetaClassName}>
-              <span className="inline-flex items-center gap-1">
-                {isRemoteThread && (
-                  <Tooltip>
-                    <TooltipTrigger
-                      render={
-                        <span
-                          aria-label={threadEnvironmentLabel ?? "Remote"}
-                          className="inline-flex items-center justify-center"
-                        />
-                      }
+            )}
+            {!isThreadRunning ? (
+              <span className={threadMetaClassName}>
+                <span className="inline-flex items-center gap-1">
+                  {isRemoteThread && (
+                    <Tooltip>
+                      <TooltipTrigger
+                        render={
+                          <span
+                            aria-label={threadEnvironmentLabel ?? "Remote"}
+                            className="inline-flex items-center justify-center"
+                          />
+                        }
+                      >
+                        <CloudIcon className="size-3 text-muted-foreground/40" />
+                      </TooltipTrigger>
+                      <TooltipPopup side="top">{threadEnvironmentLabel}</TooltipPopup>
+                    </Tooltip>
+                  )}
+                  {jumpLabel ? (
+                    <span
+                      className="inline-flex h-5 items-center rounded-full border border-border/80 bg-background/90 px-1.5 font-mono text-[10px] font-medium tracking-tight text-foreground shadow-sm"
+                      title={jumpLabel}
                     >
-                      <CloudIcon className="size-3 text-muted-foreground/40" />
-                    </TooltipTrigger>
-                    <TooltipPopup side="top">{threadEnvironmentLabel}</TooltipPopup>
-                  </Tooltip>
-                )}
-                {jumpLabel ? (
-                  <span
-                    className="inline-flex h-5 items-center rounded-full border border-border/80 bg-background/90 px-1.5 font-mono text-[10px] font-medium tracking-tight text-foreground shadow-sm"
-                    title={jumpLabel}
-                  >
-                    {jumpLabel}
-                  </span>
-                ) : (
-                  <span
-                    className={`text-[10px] ${
-                      isHighlighted
-                        ? "text-foreground/72 dark:text-foreground/82"
-                        : "text-muted-foreground/40"
-                    }`}
-                  >
-                    {formatRelativeTimeLabel(
-                      thread.latestUserMessageAt ?? thread.updatedAt ?? thread.createdAt,
-                    )}
-                  </span>
-                )}
+                      {jumpLabel}
+                    </span>
+                  ) : (
+                    <span
+                      className={`text-[10px] ${
+                        isHighlighted
+                          ? "text-foreground/72 dark:text-foreground/82"
+                          : "text-muted-foreground/40"
+                      }`}
+                    >
+                      {formatRelativeTimeLabel(
+                        thread.latestUserMessageAt ?? thread.updatedAt ?? thread.createdAt,
+                      )}
+                    </span>
+                  )}
+                </span>
               </span>
-            </span>
+            ) : null}
           </div>
         </div>
       </SidebarMenuSubButton>
@@ -1879,8 +1920,17 @@ const SidebarProjectItem = memo(function SidebarProjectItem(props: SidebarProjec
         scopedProjectKey(scopeProjectRef(thread.environmentId, thread.projectId)),
       );
       const threadWorkspacePath = thread.worktreePath ?? threadProject?.cwd ?? project.cwd ?? null;
+      const threadApi = readEnvironmentApi(thread.environmentId);
+      const canInterruptThread = thread.session?.status === "running";
+      const canStopThreadSession =
+        thread.session?.status === "ready" || thread.session?.status === "connecting";
       const clicked = await api.contextMenu.show(
         [
+          ...(canInterruptThread
+            ? ([{ id: "interrupt", label: "Interrupt turn" }] satisfies ContextMenuItem[])
+            : canStopThreadSession
+              ? ([{ id: "stop-session", label: "Stop session" }] satisfies ContextMenuItem[])
+              : []),
           { id: "rename", label: "Rename thread" },
           { id: "mark-unread", label: "Mark unread" },
           { id: "copy-path", label: "Copy Path" },
@@ -1899,6 +1949,50 @@ const SidebarProjectItem = memo(function SidebarProjectItem(props: SidebarProjec
 
       if (clicked === "mark-unread") {
         markThreadUnread(threadKey, thread.latestTurn?.completedAt);
+        return;
+      }
+      if (clicked === "interrupt") {
+        if (!threadApi) {
+          return;
+        }
+        try {
+          await threadApi.orchestration.dispatchCommand({
+            type: "thread.turn.interrupt",
+            commandId: newCommandId(),
+            threadId: threadRef.threadId,
+            createdAt: new Date().toISOString(),
+          });
+        } catch (error) {
+          toastManager.add(
+            stackedThreadToast({
+              type: "error",
+              title: "Failed to interrupt thread",
+              description: error instanceof Error ? error.message : "An error occurred.",
+            }),
+          );
+        }
+        return;
+      }
+      if (clicked === "stop-session") {
+        if (!threadApi) {
+          return;
+        }
+        try {
+          await threadApi.orchestration.dispatchCommand({
+            type: "thread.session.stop",
+            commandId: newCommandId(),
+            threadId: threadRef.threadId,
+            createdAt: new Date().toISOString(),
+          });
+        } catch (error) {
+          toastManager.add(
+            stackedThreadToast({
+              type: "error",
+              title: "Failed to stop session",
+              description: error instanceof Error ? error.message : "An error occurred.",
+            }),
+          );
+        }
         return;
       }
       if (clicked === "copy-path") {

@@ -1,8 +1,6 @@
 import { Data, Effect, FileSystem, Layer, Path } from "effect";
-import { HttpServer } from "effect/unstable/http";
 
 import { AuthControlPlane } from "../auth/Services/AuthControlPlane.ts";
-import { SessionCredentialService } from "../auth/Services/SessionCredentialService.ts";
 import { ServerConfig } from "../config.ts";
 import { ServerEnvironment } from "../environment/Services/ServerEnvironment.ts";
 import { bootstrapPublicBridgeBearerSession, runLocalBridgeClient } from "./LocalBridgeClient.ts";
@@ -12,10 +10,6 @@ class LocalBridgeBootstrapError extends Data.TaggedError("LocalBridgeBootstrapEr
   readonly message: string;
   readonly cause?: unknown;
 }> {}
-
-function isTcpAddress(address: unknown): address is { readonly port: number } {
-  return typeof address === "object" && address !== null && "port" in address;
-}
 
 const resolveBridgeBearerToken = Effect.fn("resolveBridgeBearerToken")(function* () {
   const config = yield* ServerConfig;
@@ -81,30 +75,19 @@ export const LocalBridgeClientLive = Layer.effectDiscard(
       return;
     }
 
-    const server = yield* HttpServer.HttpServer;
-    const address = server.address;
-    if (!isTcpAddress(address)) {
-      yield* Effect.logWarning("Local bridge could not resolve the local HTTP server port.");
-      return;
-    }
-
     const authControlPlane = yield* AuthControlPlane;
-    const sessions = yield* SessionCredentialService;
     const serverEnvironment = yield* ServerEnvironment;
     const issuedSession = yield* authControlPlane.issueSession({
       role: "owner",
       subject: "local-bridge-internal",
       label: "Local bridge internal",
     });
-    const wsToken = yield* sessions.issueWebSocketToken(issuedSession.sessionId);
     const environment = yield* serverEnvironment.getDescriptor;
-    const localWsUrl = new URL(`ws://127.0.0.1:${address.port}/ws`);
-    localWsUrl.searchParams.set("wsToken", wsToken.token);
 
     yield* runLocalBridgeClient({
       publicHttpBaseUrl: bridge.publicHttpBaseUrl,
       publicBearerToken: bearerToken,
-      localWsUrl: localWsUrl.toString(),
+      localSessionId: issuedSession.sessionId,
       environment,
       startedAt: LOCAL_BRIDGE_SERVER_STARTED_AT,
     }).pipe(Effect.forkDetach);

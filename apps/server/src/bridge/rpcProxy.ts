@@ -17,10 +17,7 @@ import {
   WS_METHODS,
   WsRpcGroup,
   type EnvironmentId,
-  type OrchestrationProjectShell,
   type OrchestrationShellStreamItem,
-  type OrchestrationThreadShell,
-  type ProjectId,
   type ServerConfig,
   type ServerConfigStreamEvent,
   type ServerLifecycleStreamEvent,
@@ -148,72 +145,7 @@ function localizeLifecycleEvent(event: ServerLifecycleStreamEvent): ServerLifecy
   return event;
 }
 
-function isActiveAtBridgeStart(thread: OrchestrationThreadShell): boolean {
-  const status = thread.session?.status;
-  return (
-    thread.hasPendingApprovals ||
-    thread.hasPendingUserInput ||
-    thread.hasActionableProposedPlan ||
-    thread.latestTurn?.state === "running" ||
-    Boolean(status && status !== "idle" && status !== "stopped")
-  );
-}
-
-function isThreadVisible(thread: OrchestrationThreadShell, connectedAt: string): boolean {
-  return (
-    thread.createdAt >= connectedAt ||
-    thread.updatedAt >= connectedAt ||
-    isActiveAtBridgeStart(thread)
-  );
-}
-
-function isProjectVisible(
-  project: OrchestrationProjectShell,
-  visibleProjectIds: ReadonlySet<ProjectId>,
-  connectedAt: string,
-): boolean {
-  return (
-    visibleProjectIds.has(project.id) ||
-    project.createdAt >= connectedAt ||
-    project.updatedAt >= connectedAt
-  );
-}
-
-function filterShellItem(
-  item: OrchestrationShellStreamItem,
-  connectedAt: string | null,
-): OrchestrationShellStreamItem | null {
-  if (!connectedAt) {
-    return item;
-  }
-
-  if (item.kind === "snapshot") {
-    const threads = item.snapshot.threads.filter((thread) => isThreadVisible(thread, connectedAt));
-    const visibleProjectIds = new Set(threads.map((thread) => thread.projectId));
-    return {
-      kind: "snapshot",
-      snapshot: {
-        ...item.snapshot,
-        projects: item.snapshot.projects.filter((project) =>
-          isProjectVisible(project, visibleProjectIds, connectedAt),
-        ),
-        threads,
-      },
-    };
-  }
-
-  if (
-    item.kind === "project-upserted" &&
-    item.project.createdAt < connectedAt &&
-    item.project.updatedAt < connectedAt
-  ) {
-    return null;
-  }
-
-  if (item.kind === "thread-upserted" && !isThreadVisible(item.thread, connectedAt)) {
-    return null;
-  }
-
+export function forwardBridgeShellItem(item: OrchestrationShellStreamItem): OrchestrationShellStreamItem {
   return item;
 }
 
@@ -221,7 +153,6 @@ export const makeBridgeWsRpcLayer = (environmentId: EnvironmentId) =>
   WsRpcGroup.toLayer(
     Effect.gen(function* () {
       const registry = yield* LocalBridgeRegistry;
-      const connectedAt = yield* registry.readConnectedAt(environmentId);
 
       const request = <A>(
         method: string,
@@ -282,10 +213,7 @@ export const makeBridgeWsRpcLayer = (environmentId: EnvironmentId) =>
             ORCHESTRATION_WS_METHODS.subscribeShell,
             payload,
             (message, cause) => new OrchestrationGetSnapshotError({ message, cause }),
-          ).pipe(
-            Stream.map((item) => filterShellItem(item, connectedAt)),
-            Stream.filter((item): item is OrchestrationShellStreamItem => item !== null),
-          ),
+          ).pipe(Stream.map(forwardBridgeShellItem)),
         [ORCHESTRATION_WS_METHODS.subscribeThread]: (payload: unknown) =>
           stream(
             ORCHESTRATION_WS_METHODS.subscribeThread,

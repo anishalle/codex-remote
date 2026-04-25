@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import { a as version, s as NetService, t as cli } from "./cli-Bl4SUpNY.mjs";
+import { a as version, s as NetService, t as cli } from "./cli-BIDXo99N.mjs";
 import "./PTY-CihSwCdI.mjs";
 import * as NodeRuntime from "@effect/platform-node/NodeRuntime";
 import * as NodeServices from "@effect/platform-node/NodeServices";

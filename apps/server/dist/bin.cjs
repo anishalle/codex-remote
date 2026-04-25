@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 const require_chunk = require('./chunk-DlKPiV2v.cjs');
-const require_cli = require('./cli-BjU8Fw9s.cjs');
+const require_cli = require('./cli-BuwSNSrQ.cjs');
 require('./PTY-BNE-GnF4.cjs');
 let _effect_platform_node_NodeRuntime = require("@effect/platform-node/NodeRuntime");
 _effect_platform_node_NodeRuntime = require_chunk.__toESM(_effect_platform_node_NodeRuntime);

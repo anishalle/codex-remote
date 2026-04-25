@@ -821,6 +821,52 @@ describe("ProviderRuntimeIngestion", () => {
     expect(payload?.detail).toBe("bun run lint");
   });
 
+  it("renders declined command completions without implying execution", async () => {
+    const harness = await createHarness();
+    const now = new Date().toISOString();
+
+    harness.emit({
+      type: "item.completed",
+      eventId: asEventId("evt-command-declined"),
+      provider: "codex",
+      createdAt: now,
+      threadId: asThreadId("thread-1"),
+      turnId: asTurnId("turn-command-declined"),
+      itemId: asItemId("item-command-declined"),
+      payload: {
+        itemType: "command_execution",
+        status: "declined",
+        title: "Ran command",
+        detail: "/bin/zsh -lc \"printf 'DENY_ME ' > /tmp/codex-remote-approval-deny.txt\"",
+        data: {
+          toolCallId: "tool-command-declined-1",
+          kind: "execute",
+          command: "/bin/zsh -lc \"printf 'DENY_ME ' > /tmp/codex-remote-approval-deny.txt\"",
+        },
+      },
+    });
+
+    const thread = await waitForThread(harness.engine, (entry) =>
+      entry.activities.some(
+        (activity: ProviderRuntimeTestActivity) => activity.id === "evt-command-declined",
+      ),
+    );
+    const activity = thread.activities.find(
+      (entry: ProviderRuntimeTestActivity) => entry.id === "evt-command-declined",
+    );
+    const payload =
+      activity?.payload && typeof activity.payload === "object"
+        ? (activity.payload as Record<string, unknown>)
+        : undefined;
+
+    expect(activity?.summary).toBe("Command declined");
+    expect(activity?.tone).toBe("info");
+    expect(payload?.status).toBe("declined");
+    expect(payload?.detail).toBe(
+      '/bin/zsh -lc "printf \'DENY_ME \' > /tmp/codex-remote-approval-deny.txt"',
+    );
+  });
+
   it("uses structured read-file paths when available", async () => {
     const harness = await createHarness();
     const now = new Date().toISOString();
@@ -2197,6 +2243,129 @@ describe("ProviderRuntimeIngestion", () => {
     expect(completionEvents).toHaveLength(1);
   });
 
+  it("suppresses assistant output after a declined approval resolves", async () => {
+    const harness = await createHarness();
+    const now = new Date().toISOString();
+    const deniedAck = "DENY_ACK_AFTER_DECLINE";
+
+    harness.emit({
+      type: "turn.started",
+      eventId: asEventId("evt-turn-started-for-decline-suppression"),
+      provider: "codex",
+      createdAt: now,
+      threadId: asThreadId("thread-1"),
+      turnId: asTurnId("turn-decline-suppression"),
+    });
+
+    await waitForThread(
+      harness.engine,
+      (thread) =>
+        thread.session?.status === "running" &&
+        thread.session?.activeTurnId === "turn-decline-suppression",
+    );
+
+    harness.emit({
+      type: "request.opened",
+      eventId: asEventId("evt-request-opened-for-decline-suppression"),
+      provider: "codex",
+      createdAt: now,
+      threadId: asThreadId("thread-1"),
+      turnId: asTurnId("turn-decline-suppression"),
+      requestId: ApprovalRequestId.make("req-decline-suppression"),
+      payload: {
+        requestType: "command_execution_approval",
+        detail: "/bin/zsh -lc 'printf denied'",
+      },
+    });
+
+    harness.emit({
+      type: "request.resolved",
+      eventId: asEventId("evt-request-resolved-for-decline-suppression"),
+      provider: "codex",
+      createdAt: now,
+      threadId: asThreadId("thread-1"),
+      turnId: asTurnId("turn-decline-suppression"),
+      requestId: ApprovalRequestId.make("req-decline-suppression"),
+      payload: {
+        requestType: "command_execution_approval",
+        decision: "decline",
+      },
+    });
+
+    harness.emit({
+      type: "content.delta",
+      eventId: asEventId("evt-message-delta-for-decline-suppression"),
+      provider: "codex",
+      createdAt: now,
+      threadId: asThreadId("thread-1"),
+      turnId: asTurnId("turn-decline-suppression"),
+      itemId: asItemId("item-decline-suppression"),
+      payload: {
+        streamKind: "assistant_text",
+        delta: deniedAck,
+      },
+    });
+
+    harness.emit({
+      type: "item.completed",
+      eventId: asEventId("evt-message-completed-for-decline-suppression"),
+      provider: "codex",
+      createdAt: now,
+      threadId: asThreadId("thread-1"),
+      turnId: asTurnId("turn-decline-suppression"),
+      itemId: asItemId("item-decline-suppression"),
+      payload: {
+        itemType: "assistant_message",
+        status: "completed",
+        detail: deniedAck,
+      },
+    });
+
+    harness.emit({
+      type: "turn.completed",
+      eventId: asEventId("evt-turn-completed-for-decline-suppression"),
+      provider: "codex",
+      createdAt: now,
+      threadId: asThreadId("thread-1"),
+      turnId: asTurnId("turn-decline-suppression"),
+      payload: {
+        state: "completed",
+      },
+    });
+
+    const thread = await waitForThread(
+      harness.engine,
+      (entry) =>
+        entry.session?.status === "ready" &&
+        entry.session?.activeTurnId === null &&
+        entry.activities.some(
+          (activity: ProviderRuntimeTestActivity) =>
+            activity.id === "evt-request-resolved-for-decline-suppression",
+        ),
+    );
+
+    expect(
+      thread.messages.some(
+        (message: ProviderRuntimeTestMessage) =>
+          message.role === "assistant" && message.text.includes(deniedAck),
+      ),
+    ).toBe(false);
+
+    const events = await Effect.runPromise(
+      Stream.runCollect(harness.engine.readEvents(0)).pipe(
+        Effect.map((chunk) => Array.from(chunk)),
+      ),
+    );
+    expect(
+      events.some(
+        (event) =>
+          event.type === "thread.message-sent" &&
+          event.payload.role === "assistant" &&
+          event.payload.text.includes(deniedAck),
+      ),
+    ).toBe(false);
+  });
+
   it("maps canonical request events into approval activities with requestKind", async () => {
     const harness = await createHarness();
     const now = new Date().toISOString();
@@ -2728,6 +2897,47 @@ describe("ProviderRuntimeIngestion", () => {
     );
     expect(activity?.summary).toBe("Context compacted");
     expect(activity?.tone).toBe("info");
+  });
+
+  it("syncs provider thread archived and active states into thread archive status", async () => {
+    const harness = await createHarness();
+    const archivedAt = new Date().toISOString();
+
+    await Effect.runPromise(
+      harness.engine.dispatch({
+        type: "thread.archive",
+        commandId: CommandId.make("cmd-thread-archive"),
+        threadId: asThreadId("thread-1"),
+      }),
+    );
+
+    await waitForThread(harness.engine, (entry) => entry.archivedAt !== null);
+
+    harness.emit({
+      type: "thread.state.changed",
+      eventId: asEventId("evt-thread-active"),
+      provider: "codex",
+      createdAt: new Date().toISOString(),
+      threadId: asThreadId("thread-1"),
+      payload: {
+        state: "active",
+      },
+    });
+
+    await waitForThread(harness.engine, (entry) => entry.archivedAt === null);
+
+    harness.emit({
+      type: "thread.state.changed",
+      eventId: asEventId("evt-thread-archived"),
+      provider: "codex",
+      createdAt: new Date().toISOString(),
+      threadId: asThreadId("thread-1"),
+      payload: {
+        state: "archived",
+      },
+    });
+
+    await waitForThread(harness.engine, (entry) => entry.archivedAt !== null);
   });
 
   it("projects Codex task lifecycle chunks into thread activities", async () => {

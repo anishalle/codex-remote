@@ -196,6 +196,94 @@ describe("decider project scripts", () => {
     });
   });
 
+  it("uses the turn-start command mode selections even when the thread state is stale", async () => {
+    const now = new Date().toISOString();
+    const initial = createEmptyReadModel(now);
+    const withProject = await Effect.runPromise(
+      projectEvent(initial, {
+        sequence: 1,
+        eventId: asEventId("evt-project-create-stale-modes"),
+        aggregateKind: "project",
+        aggregateId: asProjectId("project-1"),
+        type: "project.created",
+        occurredAt: now,
+        commandId: CommandId.make("cmd-project-create-stale-modes"),
+        causationEventId: null,
+        correlationId: CommandId.make("cmd-project-create-stale-modes"),
+        metadata: {},
+        payload: {
+          projectId: asProjectId("project-1"),
+          title: "Project",
+          workspaceRoot: "/tmp/project",
+          defaultModelSelection: null,
+          scripts: [],
+          createdAt: now,
+          updatedAt: now,
+        },
+      }),
+    );
+    const readModel = await Effect.runPromise(
+      projectEvent(withProject, {
+        sequence: 2,
+        eventId: asEventId("evt-thread-create-stale-modes"),
+        aggregateKind: "thread",
+        aggregateId: ThreadId.make("thread-1"),
+        type: "thread.created",
+        occurredAt: now,
+        commandId: CommandId.make("cmd-thread-create-stale-modes"),
+        causationEventId: null,
+        correlationId: CommandId.make("cmd-thread-create-stale-modes"),
+        metadata: {},
+        payload: {
+          threadId: ThreadId.make("thread-1"),
+          projectId: asProjectId("project-1"),
+          title: "Thread",
+          modelSelection: {
+            provider: "codex",
+            model: "gpt-5-codex",
+          },
+          interactionMode: DEFAULT_PROVIDER_INTERACTION_MODE,
+          runtimeMode: "full-access",
+          branch: null,
+          worktreePath: null,
+          createdAt: now,
+          updatedAt: now,
+        },
+      }),
+    );
+
+    const result = await Effect.runPromise(
+      decideOrchestrationCommand({
+        command: {
+          type: "thread.turn.start",
+          commandId: CommandId.make("cmd-turn-start-stale-modes"),
+          threadId: ThreadId.make("thread-1"),
+          message: {
+            messageId: asMessageId("message-user-stale-modes"),
+            role: "user",
+            text: "use the current composer settings",
+            attachments: [],
+          },
+          interactionMode: "plan",
+          runtimeMode: "approval-required",
+          createdAt: now,
+        },
+        readModel,
+      }),
+    );
+
+    const events = Array.isArray(result) ? result : [result];
+    const turnStartEvent = events[1];
+    expect(turnStartEvent?.type).toBe("thread.turn-start-requested");
+    if (turnStartEvent?.type !== "thread.turn-start-requested") {
+      return;
+    }
+    expect(turnStartEvent.payload).toMatchObject({
+      runtimeMode: "approval-required",
+      interactionMode: "plan",
+    });
+  });
+
   it("emits thread.runtime-mode-set from thread.runtime-mode.set", async () => {
     const now = new Date().toISOString();
     const initial = createEmptyReadModel(now);

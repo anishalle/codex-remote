@@ -1,0 +1,34 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e6]:
+    - link "Go to threads" [ref=e9] [cursor=pointer]:
+      - /url: /
+      - img "T3" [ref=e10]
+      - generic [ref=e12]: Code
+      - generic [ref=e13]: Alpha
+    - generic [ref=e15]:
+      - list [ref=e17]:
+        - listitem [ref=e18]:
+          - button "Search" [ref=e19] [cursor=pointer]:
+            - img [ref=e20]
+            - generic [ref=e23]: Search
+      - generic [ref=e24]:
+        - generic [ref=e25]:
+          - generic [ref=e26]: Projects
+          - generic [ref=e27]:
+            - button [ref=e28] [cursor=pointer]:
+              - img [ref=e29]
+            - button "Add project" [ref=e32] [cursor=pointer]:
+              - img [ref=e33]
+        - list
+        - generic [ref=e34]: No projects yet
+    - separator [ref=e35]
+    - list [ref=e37]:
+      - listitem [ref=e38]:
+        - button "Settings" [ref=e39] [cursor=pointer]:
+          - img [ref=e40]
+          - generic [ref=e43]: Settings
+    - button "Resize Sidebar" [ref=e44]
+  - generic:
+    - region "Notifications"
+  - generic:
+    - region "Notifications"

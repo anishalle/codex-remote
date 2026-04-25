@@ -957,12 +957,14 @@ routing.layer("ProviderServiceLive routing", (it) => {
             activeTurnId: string | null;
             lastError: string | null;
             lastRuntimeEvent: string | null;
+            source: string | null;
           };
           assert.equal(runtimePayload.cwd, session.cwd);
           assert.equal(runtimePayload.model, null);
           assert.equal(runtimePayload.activeTurnId, `turn-${String(session.threadId)}`);
           assert.equal(runtimePayload.lastError, null);
           assert.equal(runtimePayload.lastRuntimeEvent, "provider.sendTurn");
+          assert.equal(runtimePayload.source, "provider-runtime");
         }
       }
     }),

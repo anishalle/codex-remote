@@ -11,6 +11,7 @@ import {
   deriveCompletionDividerBeforeEntryId,
   deriveActiveWorkStartedAt,
   deriveActivePlanState,
+  derivePhase,
   derivePendingApprovals,
   derivePendingUserInputs,
   deriveTimelineEntries,
@@ -19,6 +20,7 @@ import {
   findSidebarProposedPlan,
   hasActionableProposedPlan,
   hasToolActivityForTurn,
+  isThreadActivelyRunning,
   isLatestTurnSettled,
 } from "./session-logic";
 
@@ -1514,5 +1516,64 @@ describe("deriveActiveWorkStartedAt", () => {
         "2026-02-27T21:11:00.000Z",
       ),
     ).toBe("2026-02-27T21:11:00.000Z");
+  });
+});
+
+describe("isThreadActivelyRunning", () => {
+  it("treats orchestration-running sessions as active even when the legacy status is ready", () => {
+    expect(
+      isThreadActivelyRunning({
+        latestTurn: null,
+        session: {
+          status: "ready",
+          orchestrationStatus: "running",
+        },
+      }),
+    ).toBe(true);
+  });
+
+  it("falls back to the latest turn state when the session fields are stale", () => {
+    expect(
+      isThreadActivelyRunning({
+        latestTurn: {
+          state: "running",
+        } as const,
+        session: {
+          status: "ready",
+          orchestrationStatus: "ready",
+        },
+      }),
+    ).toBe(true);
+  });
+});
+
+describe("derivePhase", () => {
+  it("returns running when orchestration status is running even if the legacy session status is ready", () => {
+    expect(
+      derivePhase({
+        provider: "codex",
+        status: "ready",
+        orchestrationStatus: "running",
+        createdAt: "2026-03-09T10:00:00.000Z",
+        updatedAt: "2026-03-09T10:00:00.000Z",
+      }),
+    ).toBe("running");
+  });
+
+  it("returns running when the latest turn is still marked running", () => {
+    expect(
+      derivePhase(
+        {
+          provider: "codex",
+          status: "ready",
+          orchestrationStatus: "ready",
+          createdAt: "2026-03-09T10:00:00.000Z",
+          updatedAt: "2026-03-09T10:00:00.000Z",
+        },
+        {
+          state: "running",
+        } as const,
+      ),
+    ).toBe("running");
   });
 });

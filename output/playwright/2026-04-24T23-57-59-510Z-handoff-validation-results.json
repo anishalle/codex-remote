@@ -1,0 +1,26 @@
+{
+  "runStamp": "2026-04-24T23-57-59-510Z",
+  "duplicate": {
+    "prompt": "REMOTE_DUPLICATE_PROMPT_2026-04-24T23-57-59-510Z",
+    "response": "REMOTE_DUPLICATE_ACK_2026-04-24T23-57-59-510Z",
+    "localPromptCount": 2,
+    "publicPromptCount": 2
+  },
+  "deny": {
+    "path": "/tmp/codex-remote-approval-deny-2026-04-24T23-57-59-510Z.txt",
+    "fileExists": false,
+    "localAckCount": 1,
+    "publicAckCount": 1
+  },
+  "approve": {
+    "path": "/tmp/codex-remote-approval-approve-2026-04-24T23-57-59-510Z.txt",
+    "contents": "APPROVE_2026-04-24T23-57-59-510Z\n",
+    "ack": "APPROVE_ACK_2026-04-24T23-57-59-510Z"
+  },
+  "stop": {
+    "path": "/tmp/codex-remote-stop-2026-04-24T23-57-59-510Z.txt",
+    "fileExists": false,
+    "localAckCount": 1,
+    "publicAckCount": 1
+  }
+}

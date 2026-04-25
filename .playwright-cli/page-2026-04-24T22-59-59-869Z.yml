@@ -1,0 +1,486 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e6]:
+    - generic [ref=e9]:
+      - link "Go to threads" [ref=e12] [cursor=pointer]:
+        - /url: /
+        - img "T3" [ref=e13]
+        - generic [ref=e15]: Code
+        - generic [ref=e16]: Alpha
+      - generic [ref=e18]:
+        - list [ref=e20]:
+          - listitem [ref=e21]:
+            - button "Search ⌘K" [ref=e22] [cursor=pointer]:
+              - img [ref=e23]
+              - generic [ref=e26]: Search
+              - generic: ⌘K
+        - generic [ref=e27]:
+          - generic [ref=e28]:
+            - generic [ref=e29]: Projects
+            - generic [ref=e30]:
+              - button [ref=e31] [cursor=pointer]:
+                - img [ref=e32]
+              - button "Add project" [ref=e35] [cursor=pointer]:
+                - img [ref=e36]
+          - list [ref=e37]:
+            - listitem [ref=e38]:
+              - generic [ref=e39]:
+                - button "anishalle/codex-remote 2 projects" [ref=e40] [cursor=pointer]:
+                  - img [ref=e41]
+                  - generic [ref=e43]:
+                    - generic [ref=e44]: anishalle/codex-remote
+                    - generic [ref=e45]: 2 projects
+                - generic "Remote project":
+                  - img
+                - generic:
+                  - button "Create new thread in anishalle/codex-remote":
+                    - img
+              - list [ref=e46]:
+                - listitem [ref=e47]:
+                  - button "Simple Greeting Reply Archive Simple Greeting Reply Anish’s MacBook Pro 1m ago" [ref=e1214] [cursor=pointer]:
+                    - generic [ref=e50]: Simple Greeting Reply
+                    - generic [ref=e52]:
+                      - generic:
+                        - button "Archive Simple Greeting Reply":
+                          - img
+                      - generic:
+                        - generic:
+                          - generic "Anish’s MacBook Pro":
+                            - img
+                          - generic: 1m ago
+                - listitem [ref=e53]:
+                  - button "say Hi, nothing else Archive say Hi, nothing else Anish’s MacBook Pro 47m ago" [ref=e1215] [cursor=pointer]:
+                    - generic [ref=e56]: say Hi, nothing else
+                    - generic [ref=e58]:
+                      - generic:
+                        - button "Archive say Hi, nothing else":
+                          - img
+                      - generic:
+                        - generic:
+                          - generic "Anish’s MacBook Pro":
+                            - img
+                          - generic: 47m ago
+                - listitem [ref=e59]:
+                  - button "The following is the Codex agent history whose request action you are assessing Archive The following is the Codex agent history whose request action you are assessing Anish’s MacBook Pro 5h ago" [ref=e60] [cursor=pointer]:
+                    - generic [ref=e62]: The following is the Codex agent history whose request action you are assessing
+                    - generic [ref=e64]:
+                      - generic:
+                        - button "Archive The following is the Codex agent history whose request action you are assessing":
+                          - img
+                      - generic:
+                        - generic:
+                          - generic "Anish’s MacBook Pro":
+                            - img
+                          - generic: 5h ago
+                - listitem [ref=e65]:
+                  - button "we're still getting the double counting error when we send messages from the SE Archive we're still getting the double counting error when we send messages from the SE Anish’s MacBook Pro 5h ago" [ref=e66] [cursor=pointer]:
+                    - generic [ref=e68]: we're still getting the double counting error when we send messages from the SE
+                    - generic [ref=e70]:
+                      - generic:
+                        - button "Archive we're still getting the double counting error when we send messages from the SE":
+                          - img
+                      - generic:
+                        - generic:
+                          - generic "Anish’s MacBook Pro":
+                            - img
+                          - generic: 5h ago
+                - listitem [ref=e71]:
+                  - button "codex, respond with ONLY a \"hi\" Archive codex, respond with ONLY a \"hi\" Anish’s MacBook Pro 5h ago" [ref=e72] [cursor=pointer]:
+                    - generic [ref=e74]: codex, respond with ONLY a "hi"
+                    - generic [ref=e76]:
+                      - generic:
+                        - button "Archive codex, respond with ONLY a \"hi\"":
+                          - img
+                      - generic:
+                        - generic:
+                          - generic "Anish’s MacBook Pro":
+                            - img
+                          - generic: 5h ago
+                - listitem [ref=e77]:
+                  - button "codex resume 019dbe5a-242b-76b2-94bd-7e404b216fac Archive codex resume 019dbe5a-242b-76b2-94bd-7e404b216fac Anish’s MacBook Pro 13h ago" [ref=e399] [cursor=pointer]:
+                    - generic [ref=e80]: codex resume 019dbe5a-242b-76b2-94bd-7e404b216fac
+                    - generic [ref=e82]:
+                      - generic:
+                        - button "Archive codex resume 019dbe5a-242b-76b2-94bd-7e404b216fac":
+                          - img
+                      - generic:
+                        - generic:
+                          - generic "Anish’s MacBook Pro":
+                            - img
+                          - generic: 13h ago
+                - listitem [ref=e83]:
+                  - button "Completed Show more" [ref=e84] [cursor=pointer]:
+                    - generic [ref=e85]:
+                      - generic "Completed" [ref=e86]:
+                        - generic [ref=e88]: Completed
+                      - generic [ref=e89]: Show more
+            - listitem [ref=e90]:
+              - generic [ref=e91]:
+                - button "handshake local" [ref=e92] [cursor=pointer]:
+                  - img [ref=e93]
+                  - generic [ref=e95]:
+                    - generic [ref=e96]: handshake
+                    - generic [ref=e97]: local
+                - generic:
+                  - button "Create new thread in handshake":
+                    - img
+              - list [ref=e98]:
+                - listitem [ref=e99]:
+                  - button "Check Helix task intake eligibility Archive Check Helix task intake eligibility 2h ago" [ref=e100] [cursor=pointer]:
+                    - generic [ref=e102]: Check Helix task intake eligibility
+                    - generic [ref=e104]:
+                      - generic:
+                        - button "Archive Check Helix task intake eligibility":
+                          - img
+                      - generic:
+                        - generic:
+                          - generic: 2h ago
+            - listitem [ref=e105]:
+              - generic [ref=e106]:
+                - button "codex-remote local" [ref=e107] [cursor=pointer]:
+                  - img [ref=e108]
+                  - generic [ref=e110]:
+                    - generic [ref=e111]: codex-remote
+                    - generic [ref=e112]: local
+                - generic:
+                  - button "Create new thread in codex-remote":
+                    - img
+              - list [ref=e113]:
+                - listitem [ref=e114]:
+                  - button "/workspace/codex-remote Archive /workspace/codex-remote 3h ago" [ref=e115] [cursor=pointer]:
+                    - generic [ref=e117]: /workspace/codex-remote
+                    - generic [ref=e119]:
+                      - generic:
+                        - button "Archive /workspace/codex-remote":
+                          - img
+                      - generic:
+                        - generic:
+                          - generic: 3h ago
+            - listitem [ref=e120]:
+              - generic [ref=e121]:
+                - button "skills local" [ref=e122] [cursor=pointer]:
+                  - img [ref=e123]
+                  - generic [ref=e125]:
+                    - generic [ref=e126]: skills
+                    - generic [ref=e127]: local
+                - generic:
+                  - button "Create new thread in skills":
+                    - img
+              - list [ref=e128]:
+                - listitem [ref=e129]:
+                  - button "Clone skills repo from GitHub Archive Clone skills repo from GitHub 4h ago" [ref=e130] [cursor=pointer]:
+                    - generic [ref=e132]: Clone skills repo from GitHub
+                    - generic [ref=e134]:
+                      - generic:
+                        - button "Archive Clone skills repo from GitHub":
+                          - img
+                      - generic:
+                        - generic:
+                          - generic: 4h ago
+            - listitem [ref=e135]:
+              - generic [ref=e136]:
+                - button "~ local" [ref=e137] [cursor=pointer]:
+                  - img [ref=e138]
+                  - generic [ref=e140]:
+                    - generic [ref=e141]: ~
+                    - generic [ref=e142]: local
+                - generic:
+                  - button "Create new thread in ~":
+                    - img
+              - list [ref=e143]:
+                - listitem [ref=e144]:
+                  - generic [ref=e146]: No threads yet
+            - listitem [ref=e147]:
+              - generic [ref=e148]:
+                - button "claude-code-main" [ref=e149] [cursor=pointer]:
+                  - img [ref=e150]
+                  - generic [ref=e153]: claude-code-main
+                - generic "Remote project":
+                  - img
+                - generic:
+                  - button "Create new thread in claude-code-main":
+                    - img
+              - list [ref=e154]:
+                - listitem [ref=e155]:
+                  - generic [ref=e157]: No threads yet
+      - separator [ref=e158]
+      - list [ref=e160]:
+        - listitem [ref=e161]:
+          - button "Settings" [ref=e162] [cursor=pointer]:
+            - img [ref=e163]
+            - generic [ref=e166]: Settings
+      - button "Resize Sidebar" [ref=e167]
+    - main [ref=e168]:
+      - generic [ref=e169]:
+        - generic [ref=e171]:
+          - generic [ref=e172]:
+            - heading "Simple Greeting Reply" [level=2] [ref=e173]
+            - generic [ref=e175]: codex-remote
+          - generic [ref=e176]:
+            - button "Add action" [ref=e177] [cursor=pointer]:
+              - img
+              - generic [ref=e178]: Add action
+            - group "Subscription actions" [ref=e179]:
+              - button "Open" [disabled]:
+                - generic: Open
+              - separator
+              - button "Copy options" [ref=e180] [cursor=pointer]:
+                - img
+            - group "Git actions" [ref=e181]:
+              - button "Commit, push & PR" [ref=e182] [cursor=pointer]:
+                - img
+                - generic [ref=e183]: Commit, push & PR
+              - separator
+              - button "Git action options" [ref=e184] [cursor=pointer]:
+                - img
+            - button "Toggle terminal drawer" [ref=e185] [cursor=pointer]:
+              - img
+            - button "Toggle diff panel" [ref=e186] [cursor=pointer]:
+              - img
+        - generic [ref=e188]:
+          - generic [ref=e194]:
+            - generic [ref=e987]:
+              - paragraph [ref=e989]: DONE
+              - generic [ref=e990]:
+                - paragraph [ref=e991]: 5:50:57 PM • 43s
+                - button "Copy link" [ref=e993] [cursor=pointer]:
+                  - img
+            - generic [ref=e998]:
+              - generic [ref=e999]: Write the text APPROVE_TWO to /tmp/codex-remote-approval-approve-two.txt, then reply with only DONE.
+              - generic [ref=e1000]:
+                - generic [ref=e1001]:
+                  - button "Copy link" [ref=e1002] [cursor=pointer]:
+                    - img
+                  - button "Revert to this message" [ref=e1003] [cursor=pointer]:
+                    - img
+                - paragraph [ref=e1004]: 5:53:44 PM
+            - generic [ref=e1219]:
+              - paragraph [ref=e1221]: DONE
+              - generic [ref=e1222]:
+                - generic [ref=e1223]:
+                  - paragraph [ref=e1224]:
+                    - generic [ref=e1225]: Changed files (2)
+                    - text: •
+                    - generic [ref=e1226]: "+675"
+                    - text: /
+                    - generic [ref=e1227]: "-0"
+                  - generic [ref=e1228]:
+                    - button "Collapse all" [ref=e1229] [cursor=pointer]
+                    - button "View diff" [ref=e1230] [cursor=pointer]
+                - generic [ref=e1232]:
+                  - button ".playwright-cli +675/-0" [ref=e1233]:
+                    - img [ref=e1234]
+                    - img [ref=e1236]
+                    - generic [ref=e1238]: .playwright-cli
+                    - generic [ref=e1239]:
+                      - generic [ref=e1240]: "+675"
+                      - text: /
+                      - generic [ref=e1241]: "-0"
+                  - generic [ref=e1242]:
+                    - button "page-2026-04-24T22-51-03-326Z.yml +392/-0" [ref=e1243]:
+                      - img [ref=e1245]
+                      - generic [ref=e1246]: page-2026-04-24T22-51-03-326Z.yml
+                      - generic [ref=e1247]:
+                        - generic [ref=e1248]: "+392"
+                        - text: /
+                        - generic [ref=e1249]: "-0"
+                    - button "page-2026-04-24T22-53-45-431Z.yml +283/-0" [ref=e1250]:
+                      - img [ref=e1252]
+                      - generic [ref=e1253]: page-2026-04-24T22-53-45-431Z.yml
+                      - generic [ref=e1254]:
+                        - generic [ref=e1255]: "+283"
+                        - text: /
+                        - generic [ref=e1256]: "-0"
+              - generic [ref=e1257]:
+                - paragraph [ref=e1258]: 5:54:22 PM • 37s
+                - button "Copy link" [ref=e1260] [cursor=pointer]:
+                  - img
+            - generic [ref=e1265]:
+              - generic [ref=e1266]: Run the shell command sleep 60 exactly once, then reply with only DONE.
+              - generic [ref=e1267]:
+                - generic [ref=e1268]:
+                  - button "Copy link" [ref=e1269] [cursor=pointer]:
+                    - img
+                  - button "Revert to this message" [ref=e1270] [cursor=pointer]:
+                    - img
+                - paragraph [ref=e1271]: 5:55:59 PM
+            - generic [ref=e1276]:
+              - generic [ref=e1277]: Run the shell command sleep 180 exactly once, then reply with only DONE.
+              - generic [ref=e1278]:
+                - generic [ref=e1279]:
+                  - button "Copy link" [ref=e1280] [cursor=pointer]:
+                    - img
+                  - button "Revert to this message" [ref=e1281] [cursor=pointer]:
+                    - img
+                - paragraph [ref=e1282]: 5:58:39 PM
+            - generic [ref=e1286]:
+              - paragraph [ref=e1288]: Work log (2)
+              - generic [ref=e1289]:
+                - generic [ref=e1291]:
+                  - img [ref=e1293]
+                  - button "Command approval requested - /bin/zsh -lc 'sleep 180'" [ref=e1296]:
+                    - paragraph [ref=e1297]:
+                      - text: Command approval requested
+                      - generic [ref=e1298]: "- /bin/zsh -lc 'sleep 180'"
+                - generic [ref=e1300]:
+                  - img [ref=e1302]
+                  - button "Approval resolved" [ref=e1305]:
+                    - paragraph [ref=e1306]: Approval resolved
+            - generic [ref=e1309]:
+              - generic [ref=e1312]: Response • Worked for 1m 17s
+              - generic [ref=e1314]:
+                - paragraph [ref=e1316]: DONE
+                - generic [ref=e1317]:
+                  - generic [ref=e1318]:
+                    - paragraph [ref=e1319]:
+                      - generic [ref=e1320]: Changed files (2)
+                      - text: •
+                      - generic [ref=e1321]: "+849"
+                      - text: /
+                      - generic [ref=e1322]: "-0"
+                    - generic [ref=e1323]:
+                      - button "Collapse all" [ref=e1324] [cursor=pointer]
+                      - button "View diff" [ref=e1325] [cursor=pointer]
+                  - generic [ref=e1327]:
+                    - button ".playwright-cli +849/-0" [ref=e1328]:
+                      - img [ref=e1329]
+                      - img [ref=e1331]
+                      - generic [ref=e1333]: .playwright-cli
+                      - generic [ref=e1334]:
+                        - generic [ref=e1335]: "+849"
+                        - text: /
+                        - generic [ref=e1336]: "-0"
+                    - generic [ref=e1337]:
+                      - button "page-2026-04-24T22-57-23-785Z.yml +475/-0" [ref=e1338]:
+                        - img [ref=e1340]
+                        - generic [ref=e1341]: page-2026-04-24T22-57-23-785Z.yml
+                        - generic [ref=e1342]:
+                          - generic [ref=e1343]: "+475"
+                          - text: /
+                          - generic [ref=e1344]: "-0"
+                      - button "page-2026-04-24T22-58-46-312Z.yml +374/-0" [ref=e1345]:
+                        - img [ref=e1347]
+                        - generic [ref=e1348]: page-2026-04-24T22-58-46-312Z.yml
+                        - generic [ref=e1349]:
+                          - generic [ref=e1350]: "+374"
+                          - text: /
+                          - generic [ref=e1351]: "-0"
+                - generic [ref=e1352]:
+                  - paragraph [ref=e1353]: 5:59:54 PM • 1m 15s
+                  - button "Copy link" [ref=e1355] [cursor=pointer]:
+                    - img
+            - generic [ref=e833]:
+              - paragraph [ref=e835]:
+                - text: I’ll attempt the write command once and then return only
+                - code [ref=e836]: DONE
+                - text: if it runs.
+              - paragraph [ref=e838]: 5:50:14 PM • 3.4s
+            - generic [ref=e1359]:
+              - paragraph [ref=e1361]:
+                - text: Executing
+                - code [ref=e1362]: sleep 60
+                - text: once now, then I’ll return only
+                - code [ref=e1363]: DONE
+                - text: .
+              - generic [ref=e1364]:
+                - generic [ref=e1365]:
+                  - paragraph [ref=e1366]:
+                    - generic [ref=e1367]: Changed files (3)
+                    - text: •
+                    - generic [ref=e1368]: "+1171"
+                    - text: /
+                    - generic [ref=e1369]: "-0"
+                  - generic [ref=e1370]:
+                    - button "Collapse all" [ref=e1371] [cursor=pointer]
+                    - button "View diff" [ref=e1372] [cursor=pointer]
+                - generic [ref=e1374]:
+                  - button ".playwright-cli +1171/-0" [ref=e1375]:
+                    - img [ref=e1376]
+                    - img [ref=e1378]
+                    - generic [ref=e1380]: .playwright-cli
+                    - generic [ref=e1381]:
+                      - generic [ref=e1382]: "+1171"
+                      - text: /
+                      - generic [ref=e1383]: "-0"
+                  - generic [ref=e1384]:
+                    - button "page-2026-04-24T22-54-28-311Z.yml +425/-0" [ref=e1385]:
+                      - img [ref=e1387]
+                      - generic [ref=e1388]: page-2026-04-24T22-54-28-311Z.yml
+                      - generic [ref=e1389]:
+                        - generic [ref=e1390]: "+425"
+                        - text: /
+                        - generic [ref=e1391]: "-0"
+                    - button "page-2026-04-24T22-56-06-501Z.yml +318/-0" [ref=e1392]:
+                      - img [ref=e1394]
+                      - generic [ref=e1395]: page-2026-04-24T22-56-06-501Z.yml
+                      - generic [ref=e1396]:
+                        - generic [ref=e1397]: "+318"
+                        - text: /
+                        - generic [ref=e1398]: "-0"
+                    - button "page-2026-04-24T22-56-51-257Z.yml +428/-0" [ref=e1399]:
+                      - img [ref=e1401]
+                      - generic [ref=e1402]: page-2026-04-24T22-56-51-257Z.yml
+                      - generic [ref=e1403]:
+                        - generic [ref=e1404]: "+428"
+                        - text: /
+                        - generic [ref=e1405]: "-0"
+              - generic [ref=e1406]:
+                - paragraph [ref=e1407]: 5:56:00 PM • 909ms
+                - button "Copy link" [ref=e1409] [cursor=pointer]:
+                  - img
+            - generic [ref=e1413]:
+              - paragraph [ref=e1415]:
+                - text: I’ll run
+                - code [ref=e1416]: sleep 180
+                - text: once now and then return only
+                - code [ref=e1417]: DONE
+                - text: .
+              - paragraph [ref=e1419]: 5:58:40 PM • 1.1s
+          - generic [ref=e355]:
+            - generic [ref=e357]:
+              - textbox [ref=e358]:
+                - paragraph [ref=e359]
+              - generic: Ask anything, @tag files/folders, or use / to show available commands
+            - generic [ref=e360]:
+              - generic [ref=e1420]:
+                - button "GPT-5.3-Codex-Spark" [ref=e1421] [cursor=pointer]:
+                  - generic [ref=e1422]:
+                    - img
+                    - generic [ref=e1423]: GPT-5.3-Codex-Spark
+                    - img
+                - separator [ref=e1424]
+                - button "Low" [ref=e1425] [cursor=pointer]:
+                  - generic [ref=e1426]:
+                    - text: Low
+                    - img
+                - separator [ref=e1427]
+                - button "Build" [ref=e1428] [cursor=pointer]:
+                  - img
+                  - generic [ref=e1429]: Build
+                - separator [ref=e1430]
+                - combobox "Runtime mode" [ref=e1431] [cursor=pointer]:
+                  - img
+                  - generic [ref=e1432]: Supervised
+                  - generic [ref=e1433]:
+                    - img
+                - textbox [ref=e1434]: approval-required
+              - generic [ref=e1435]:
+                - button "Context window 16% used" [ref=e1436]:
+                  - generic [ref=e1437]:
+                    - img [ref=e1438]
+                    - generic [ref=e1441]: "16"
+                - button "Send message" [disabled]:
+                  - img
+          - generic [ref=e383]:
+            - generic [ref=e385]:
+              - img [ref=e386]
+              - text: Local checkout
+            - combobox [ref=e388] [cursor=pointer]:
+              - generic [ref=e389]: t3
+              - img
+            - textbox [ref=e390]: t3
+    - generic [ref=e392]:
+      - button "Toggle Sidebar"
+  - generic:
+    - region "Notifications"
+  - generic:
+    - region "Notifications"

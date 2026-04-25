@@ -13,7 +13,7 @@ import {
   type OrchestrationThreadActivity,
   type ProviderRuntimeEvent,
 } from "@t3tools/contracts";
-import { Cache, Cause, Duration, Effect, Layer, Option, Stream } from "effect";
+import { Cache, Cause, Duration, Effect, Layer, Option, Ref, Stream } from "effect";
 import { makeDrainableWorker } from "@t3tools/shared/DrainableWorker";
 
 import { ProviderService } from "../../provider/Services/ProviderService.ts";
@@ -175,6 +175,21 @@ function requestKindFromCanonicalRequestType(
     default:
       return undefined;
   }
+}
+
+function shouldSuppressAssistantOutputAfterApprovalDecision(decision: string | undefined): boolean {
+  return decision === "decline" || decision === "cancel";
+}
+
+function toolCompletedSummary(event: Extract<ProviderRuntimeEvent, { type: "item.completed" }>): string {
+  if (event.payload.status === "declined") {
+    return event.payload.itemType === "command_execution"
+      ? "Command declined"
+      : event.payload.title
+        ? `${event.payload.title} declined`
+        : "Tool declined";
+  }
+  return event.payload.title ?? "Tool";
 }
 
 function runtimeEventToActivities(
@@ -478,11 +493,12 @@ function runtimeEventToActivities(
         {
           id: event.eventId,
           createdAt: event.createdAt,
-          tone: "tool",
+          tone: event.payload.status === "declined" ? "info" : "tool",
           kind: "tool.completed",
-          summary: event.payload.title ?? "Tool",
+          summary: toolCompletedSummary(event),
           payload: {
             itemType: event.payload.itemType,
+            ...(event.payload.status ? { status: event.payload.status } : {}),
             ...(event.payload.detail ? { detail: truncateDetail(event.payload.detail) } : {}),
             ...(event.payload.data !== undefined ? { data: event.payload.data } : {}),
           },
@@ -552,6 +568,7 @@ const make = Effect.gen(function* () {
     timeToLive: BUFFERED_PROPOSED_PLAN_BY_ID_TTL,
     lookup: () => Effect.succeed({ text: "", createdAt: "" }),
   });
+  const suppressedAssistantOutputTurnsRef = yield* Ref.make(new Set<string>());
 
   const isGitRepoForThread = Effect.fn("isGitRepoForThread")(function* (threadId: ThreadId) {
     const readModel = yield* orchestrationEngine.getReadModel();
@@ -625,6 +642,28 @@ const make = Effect.gen(function* () {
 
   const clearAssistantSegmentStateForTurn = (threadId: ThreadId, turnId: TurnId) =>
     Cache.invalidate(assistantSegmentStateByTurnKey, providerTurnKey(threadId, turnId));
+
+  const suppressAssistantOutputForTurn = (threadId: ThreadId, turnId: TurnId) =>
+    Ref.update(suppressedAssistantOutputTurnsRef, (current) => {
+      const next = new Set(current);
+      next.add(providerTurnKey(threadId, turnId));
+      return next;
+    });
+
+  const isAssistantOutputSuppressedForTurn = (threadId: ThreadId, turnId: TurnId) =>
+    Ref.get(suppressedAssistantOutputTurnsRef).pipe(
+      Effect.map((current) => current.has(providerTurnKey(threadId, turnId))),
+    );
+
+  const clearAssistantOutputSuppressionForTurn = (threadId: ThreadId, turnId: TurnId) =>
+    Ref.update(suppressedAssistantOutputTurnsRef, (current) => {
+      if (!current.has(providerTurnKey(threadId, turnId))) {
+        return current;
+      }
+      const next = new Set(current);
+      next.delete(providerTurnKey(threadId, turnId));
+      return next;
+    });
 
   const getActiveAssistantMessageIdForTurn = (threadId: ThreadId, turnId: TurnId) =>
     getAssistantSegmentStateForTurn(threadId, turnId).pipe(
@@ -1016,6 +1055,15 @@ const make = Effect.gen(function* () {
             : Effect.void,
         { concurrency: 1 },
       ).pipe(Effect.asVoid);
+      yield* Ref.update(suppressedAssistantOutputTurnsRef, (current) => {
+        const next = new Set<string>();
+        for (const key of current) {
+          if (!key.startsWith(prefix)) {
+            next.add(key);
+          }
+        }
+        return next;
+      });
     });
 
   const getSourceProposedPlanReferenceForPendingTurnStart = Effect.fn(
@@ -1104,6 +1152,21 @@ const make = Effect.gen(function* () {
       const eventTurnId = toTurnId(event.turnId);
       const activeTurnId = thread.session?.activeTurnId ?? null;
 
+      if (event.type === "request.resolved" && eventTurnId) {
+        const requestKind = requestKindFromCanonicalRequestType(event.payload.requestType);
+        if (
+          requestKind &&
+          shouldSuppressAssistantOutputAfterApprovalDecision(event.payload.decision)
+        ) {
+          yield* suppressAssistantOutputForTurn(thread.id, eventTurnId);
+        }
+      }
+
+      const assistantOutputSuppressed =
+        eventTurnId !== undefined
+          ? yield* isAssistantOutputSuppressedForTurn(thread.id, eventTurnId)
+          : false;
+
       const conflictsWithActiveTurn =
         activeTurnId !== null && eventTurnId !== undefined && !sameId(activeTurnId, eventTurnId);
       const missingTurnForActiveTurn = activeTurnId !== null && eventTurnId === undefined;
@@ -1138,6 +1201,27 @@ const make = Effect.gen(function* () {
         event.type === "turn.started" && shouldApplyThreadLifecycle
           ? yield* getSourceProposedPlanReferenceForAcceptedTurnStart(thread.id, eventTurnId)
           : null;
+
+      if (event.type === "thread.state.changed") {
+        if (event.payload.state === "archived" && thread.archivedAt === null) {
+          yield* orchestrationEngine.dispatch({
+            type: "thread.archive",
+            commandId: providerCommandId(event, "thread-archive"),
+            threadId: thread.id,
+          });
+        }
+
+        if (
+          (event.payload.state === "active" || event.payload.state === "idle") &&
+          thread.archivedAt !== null
+        ) {
+          yield* orchestrationEngine.dispatch({
+            type: "thread.unarchive",
+            commandId: providerCommandId(event, "thread-unarchive"),
+            threadId: thread.id,
+          });
+        }
+      }
 
       if (
         event.type === "session.started" ||
@@ -1222,7 +1306,9 @@ const make = Effect.gen(function* () {
       }
 
       const assistantDelta =
-        event.type === "content.delta" && event.payload.streamKind === "assistant_text"
+        !assistantOutputSuppressed &&
+        event.type === "content.delta" &&
+        event.payload.streamKind === "assistant_text"
           ? event.payload.delta
           : undefined;
       const proposedPlanDelta =
@@ -1318,7 +1404,9 @@ const make = Effect.gen(function* () {
       }
 
       const assistantCompletion =
-        event.type === "item.completed" && event.payload.itemType === "assistant_message"
+        !assistantOutputSuppressed &&
+        event.type === "item.completed" &&
+        event.payload.itemType === "assistant_message"
           ? {
               messageId: MessageId.make(
                 `assistant:${event.itemId ?? event.turnId ?? event.eventId}`,
@@ -1404,26 +1492,30 @@ const make = Effect.gen(function* () {
       if (event.type === "turn.completed") {
         const turnId = toTurnId(event.turnId);
         if (turnId) {
-          const assistantMessageIds = yield* getAssistantMessageIdsForTurn(thread.id, turnId);
-          yield* Effect.forEach(
-            assistantMessageIds,
-            (assistantMessageId) =>
-              finalizeAssistantMessage({
-                event,
-                threadId: thread.id,
-                messageId: assistantMessageId,
-                turnId,
-                createdAt: now,
-                commandTag: "assistant-complete-finalize",
-                finalDeltaCommandTag: "assistant-delta-finalize-fallback",
-                hasProjectedMessage: thread.messages.some(
-                  (entry) => entry.id === assistantMessageId,
-                ),
-              }),
-            { concurrency: 1 },
-          ).pipe(Effect.asVoid);
+          const suppressed = yield* isAssistantOutputSuppressedForTurn(thread.id, turnId);
+          if (!suppressed) {
+            const assistantMessageIds = yield* getAssistantMessageIdsForTurn(thread.id, turnId);
+            yield* Effect.forEach(
+              assistantMessageIds,
+              (assistantMessageId) =>
+                finalizeAssistantMessage({
+                  event,
+                  threadId: thread.id,
+                  messageId: assistantMessageId,
+                  turnId,
+                  createdAt: now,
+                  commandTag: "assistant-complete-finalize",
+                  finalDeltaCommandTag: "assistant-delta-finalize-fallback",
+                  hasProjectedMessage: thread.messages.some(
+                    (entry) => entry.id === assistantMessageId,
+                  ),
+                }),
+              { concurrency: 1 },
+            ).pipe(Effect.asVoid);
+          }
           yield* clearAssistantMessageIdsForTurn(thread.id, turnId);
           yield* clearAssistantSegmentStateForTurn(thread.id, turnId);
+          yield* clearAssistantOutputSuppressionForTurn(thread.id, turnId);
 
           yield* finalizeBufferedProposedPlan({
             event,

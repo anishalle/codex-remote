@@ -1,0 +1,348 @@
+- generic [ref=e1]:
+  - generic [ref=e17]:
+    - generic [ref=e20]:
+      - link "Go to threads" [ref=e23] [cursor=pointer]:
+        - /url: /
+        - img "T3" [ref=e24]
+        - generic [ref=e26]: Code
+        - generic [ref=e27]: Alpha
+      - generic [ref=e29]:
+        - list [ref=e31]:
+          - listitem [ref=e32]:
+            - button "Search ⌘K" [ref=e33] [cursor=pointer]:
+              - img [ref=e34]
+              - generic [ref=e37]: Search
+              - generic: ⌘K
+        - generic [ref=e38]:
+          - generic [ref=e39]:
+            - generic [ref=e40]: Projects
+            - generic [ref=e41]:
+              - button [ref=e42] [cursor=pointer]:
+                - img [ref=e43]
+              - button "Add project" [ref=e46] [cursor=pointer]:
+                - img [ref=e47]
+          - list [ref=e48]:
+            - listitem [ref=e49]:
+              - generic [ref=e50]:
+                - button "anishalle/codex-remote local 2 projects" [ref=e51] [cursor=pointer]:
+                  - img [ref=e52]
+                  - generic [ref=e54]:
+                    - generic [ref=e55]: anishalle/codex-remote
+                    - generic [ref=e56]: local
+                    - generic [ref=e57]: 2 projects
+                - generic:
+                  - button "Create new thread in anishalle/codex-remote":
+                    - img
+              - list [ref=e58]:
+                - listitem [ref=e65]:
+                  - button "Simple Greeting Reply Archive Simple Greeting Reply just now" [ref=e300] [cursor=pointer]:
+                    - generic [ref=e68]: Simple Greeting Reply
+                    - generic [ref=e70]:
+                      - generic:
+                        - button "Archive Simple Greeting Reply":
+                          - img
+                      - generic:
+                        - generic:
+                          - generic: just now
+                - listitem [ref=e59]:
+                  - button "say Hi, nothing else Archive say Hi, nothing else 18m ago" [ref=e301] [cursor=pointer]:
+                    - generic [ref=e62]: say Hi, nothing else
+                    - generic [ref=e64]:
+                      - generic:
+                        - button "Archive say Hi, nothing else":
+                          - img
+                      - generic:
+                        - generic:
+                          - generic: 18m ago
+                - listitem [ref=e71]:
+                  - button "The following is the Codex agent history whose request action you are assessing Archive The following is the Codex agent history whose request action you are assessing 4h ago" [ref=e72] [cursor=pointer]:
+                    - generic [ref=e74]: The following is the Codex agent history whose request action you are assessing
+                    - generic [ref=e76]:
+                      - generic:
+                        - button "Archive The following is the Codex agent history whose request action you are assessing":
+                          - img
+                      - generic:
+                        - generic:
+                          - generic: 4h ago
+                - listitem [ref=e77]:
+                  - button "we're still getting the double counting error when we send messages from the SE Archive we're still getting the double counting error when we send messages from the SE 5h ago" [ref=e78] [cursor=pointer]:
+                    - generic [ref=e80]: we're still getting the double counting error when we send messages from the SE
+                    - generic [ref=e82]:
+                      - generic:
+                        - button "Archive we're still getting the double counting error when we send messages from the SE":
+                          - img
+                      - generic:
+                        - generic:
+                          - generic: 5h ago
+                - listitem [ref=e83]:
+                  - button "codex, respond with ONLY a \"hi\" Archive codex, respond with ONLY a \"hi\" 5h ago" [ref=e84] [cursor=pointer]:
+                    - generic [ref=e86]: codex, respond with ONLY a "hi"
+                    - generic [ref=e88]:
+                      - generic:
+                        - button "Archive codex, respond with ONLY a \"hi\"":
+                          - img
+                      - generic:
+                        - generic:
+                          - generic: 5h ago
+                - listitem [ref=e89]:
+                  - button "codex resume 019dbe5a-242b-76b2-94bd-7e404b216fac Archive codex resume 019dbe5a-242b-76b2-94bd-7e404b216fac 12h ago" [ref=e90] [cursor=pointer]:
+                    - generic [ref=e92]: codex resume 019dbe5a-242b-76b2-94bd-7e404b216fac
+                    - generic [ref=e94]:
+                      - generic:
+                        - button "Archive codex resume 019dbe5a-242b-76b2-94bd-7e404b216fac":
+                          - img
+                      - generic:
+                        - generic:
+                          - generic: 12h ago
+                - listitem [ref=e95]:
+                  - button "Completed Show more" [ref=e96] [cursor=pointer]:
+                    - generic [ref=e97]:
+                      - generic "Completed" [ref=e98]:
+                        - generic [ref=e100]: Completed
+                      - generic [ref=e101]: Show more
+            - listitem [ref=e102]:
+              - generic [ref=e103]:
+                - button "claude-code-main local" [ref=e104] [cursor=pointer]:
+                  - img [ref=e105]
+                  - generic [ref=e107]:
+                    - generic [ref=e108]: claude-code-main
+                    - generic [ref=e109]: local
+                - generic:
+                  - button "Create new thread in claude-code-main":
+                    - img
+              - list [ref=e110]:
+                - listitem [ref=e111]:
+                  - generic [ref=e113]: No threads yet
+      - separator [ref=e114]
+      - list [ref=e116]:
+        - listitem [ref=e117]:
+          - button "Settings" [ref=e118] [cursor=pointer]:
+            - img [ref=e119]
+            - generic [ref=e122]: Settings
+      - button "Resize Sidebar" [ref=e123]
+    - main [ref=e124]:
+      - generic [ref=e125]:
+        - generic [ref=e127]:
+          - generic [ref=e128]:
+            - heading "Simple Greeting Reply" [level=2] [ref=e129]
+            - generic [ref=e131]: codex-remote
+          - generic [ref=e132]:
+            - button "Add action" [ref=e133] [cursor=pointer]:
+              - img
+              - generic [ref=e134]: Add action
+            - group "Subscription actions" [ref=e135]:
+              - button "Open" [ref=e136] [cursor=pointer]:
+                - img
+                - generic [ref=e137]: Open
+              - separator
+              - button "Copy options" [ref=e138] [cursor=pointer]:
+                - img
+            - group "Git actions" [ref=e139]:
+              - button "Commit, push & PR" [ref=e140] [cursor=pointer]:
+                - img
+                - generic [ref=e141]: Commit, push & PR
+              - separator
+              - button "Git action options" [ref=e142] [cursor=pointer]:
+                - img
+            - button "Toggle terminal drawer" [ref=e143] [cursor=pointer]:
+              - img
+            - button "Toggle diff panel" [ref=e144] [cursor=pointer]:
+              - img
+        - generic [ref=e146]:
+          - generic [ref=e152]:
+            - generic [ref=e305]:
+              - paragraph [ref=e307]: Work log (3)
+              - generic [ref=e308]:
+                - generic [ref=e310]:
+                  - img [ref=e312]
+                  - paragraph [ref=e316]:
+                    - text: Ran command
+                    - generic [ref=e317]: "- pwd"
+                - generic [ref=e319]:
+                  - img [ref=e321]
+                  - button "Runtime warning" [ref=e324]:
+                    - paragraph [ref=e325]: Runtime warning
+                - generic [ref=e327]:
+                  - img [ref=e329]
+                  - button "Runtime warning" [ref=e332]:
+                    - paragraph [ref=e333]: Runtime warning
+            - generic [ref=e337]:
+              - paragraph [ref=e339]: Work log (6)
+              - generic [ref=e340]:
+                - generic [ref=e342]:
+                  - img [ref=e344]
+                  - button "Runtime warning" [ref=e347]:
+                    - paragraph [ref=e348]: Runtime warning
+                - generic [ref=e350]:
+                  - img [ref=e352]
+                  - button "Runtime warning" [ref=e355]:
+                    - paragraph [ref=e356]: Runtime warning
+                - generic [ref=e358]:
+                  - img [ref=e360]
+                  - button "Runtime warning" [ref=e363]:
+                    - paragraph [ref=e364]: Runtime warning
+                - generic [ref=e366]:
+                  - img [ref=e368]
+                  - button "Runtime warning" [ref=e371]:
+                    - paragraph [ref=e372]: Runtime warning
+                - generic [ref=e374]:
+                  - img [ref=e376]
+                  - button "Runtime warning" [ref=e379]:
+                    - paragraph [ref=e380]: Runtime warning
+                - generic [ref=e382]:
+                  - img [ref=e384]
+                  - button "Runtime warning" [ref=e387]:
+                    - paragraph [ref=e388]: Runtime warning
+            - generic [ref=e392]:
+              - paragraph [ref=e394]:
+                - text: Executing
+                - code [ref=e395]: pwd
+                - text: once in that directory and returning only the result.
+              - paragraph [ref=e397]: 5:30:54 PM • 5.0s
+            - generic [ref=e196]:
+              - paragraph [ref=e198]: /Users/ani/workspaces/github.com/anishalle/codex-remote
+              - generic [ref=e199]:
+                - paragraph [ref=e200]: 5:10:43 PM • 654ms
+                - button "Copy link" [ref=e202] [cursor=pointer]:
+                  - img
+            - generic [ref=e207]:
+              - generic [ref=e208]: Run the shell command pwd exactly once and reply with only the working directory.
+              - generic [ref=e209]:
+                - generic [ref=e210]:
+                  - button "Copy link" [ref=e211] [cursor=pointer]:
+                    - img
+                  - button "Revert to this message" [ref=e212] [cursor=pointer]:
+                    - img
+                - paragraph [ref=e213]: 5:12:02 PM
+            - generic [ref=e217]:
+              - paragraph [ref=e219]:
+                - text: Running
+                - code [ref=e220]: pwd
+                - text: once and returning only the path.
+              - paragraph [ref=e222]: 5:12:03 PM • 1.3s
+            - generic [ref=e401]:
+              - paragraph [ref=e403]: Work log (3)
+              - generic [ref=e404]:
+                - generic [ref=e406]:
+                  - img [ref=e408]
+                  - paragraph [ref=e412]:
+                    - text: Ran command
+                    - generic [ref=e413]: "- pwd"
+                - generic [ref=e415]:
+                  - img [ref=e417]
+                  - button "Runtime warning" [ref=e420]:
+                    - paragraph [ref=e421]: Runtime warning
+                - generic [ref=e423]:
+                  - img [ref=e425]
+                  - button "Runtime warning" [ref=e428]:
+                    - paragraph [ref=e429]: Runtime warning
+            - generic [ref=e244]:
+              - paragraph [ref=e246]: /Users/ani/workspaces/github.com/anishalle/codex-remote
+              - generic [ref=e247]:
+                - paragraph [ref=e248]: 5:12:04 PM • 766ms
+                - button "Copy link" [ref=e431] [cursor=pointer]:
+                  - img
+            - generic [ref=e436]:
+              - generic [ref=e437]: Run the shell command pwd exactly once and reply with only the working directory.
+              - generic [ref=e438]:
+                - button "Copy link" [ref=e440] [cursor=pointer]:
+                  - img
+                - paragraph [ref=e441]: 5:30:49 PM
+            - generic [ref=e445]:
+              - paragraph [ref=e447]: /Users/ani/workspaces/github.com/anishalle/codex-remote
+              - generic [ref=e448]:
+                - paragraph [ref=e449]: 5:30:55 PM • 944ms
+                - button "Copy link" [ref=e451] [cursor=pointer]:
+                  - img
+            - generic [ref=e455]:
+              - paragraph [ref=e457]: Work log (5)
+              - generic [ref=e458]:
+                - generic [ref=e460]:
+                  - img [ref=e462]
+                  - paragraph [ref=e466]:
+                    - text: Ran command
+                    - generic [ref=e467]: "- pwd"
+                - generic [ref=e469]:
+                  - img [ref=e471]
+                  - button "Runtime warning" [ref=e474]:
+                    - paragraph [ref=e475]: Runtime warning
+                - generic [ref=e477]:
+                  - img [ref=e479]
+                  - button "Runtime warning" [ref=e482]:
+                    - paragraph [ref=e483]: Runtime warning
+                - generic [ref=e485]:
+                  - img [ref=e487]
+                  - button "Runtime warning" [ref=e490]:
+                    - paragraph [ref=e491]: Runtime warning
+                - generic [ref=e493]:
+                  - img [ref=e495]
+                  - button "Runtime warning" [ref=e498]:
+                    - paragraph [ref=e499]: Runtime warning
+            - generic [ref=e503]:
+              - paragraph [ref=e505]: Work log (1)
+              - generic [ref=e508]:
+                - img [ref=e510]
+                - 'button "Checkpoint capture failed - Checkpoint captured, but turn diff summary is unavailable: Git command failed in CheckpointStore.diffCheckpoints: git diff --patch --minimal --no-color 20d31340aca2700ef79bc4d219898c275fb60740 8e182de3a3d456f6e2c0684e30030d0842d6e0cb (/Users/ani/workspaces/github.com/anishalle/codex-remote) - git diff --patch --minimal --no-color 20d31340aca2700ef79bc4d219898c275fb60740 8e182de3a3d456f6e2c0684e30030d0842d6e0cb output exceeded 10000000 bytes and was truncated." [ref=e513]':
+                  - paragraph [ref=e514]:
+                    - text: Checkpoint capture failed
+                    - generic [ref=e515]: "- Checkpoint captured, but turn diff summary is unavailable: Git command failed in CheckpointStore.diffCheckpoints: git diff --patch --minimal --no-color 20d31340aca2700ef79bc4d219898c275fb60740 8e182de3a3d456f6e2c0684e30030d0842d6e0cb (/Users/ani/workspaces/github.com/anishalle/codex-remote) - git diff --patch --minimal --no-color 20d31340aca2700ef79bc4d219898c275fb60740 8e182de3a3d456f6e2c0684e30030d0842d6e0cb output exceeded 10000000 bytes and was truncated."
+            - generic [ref=e519]:
+              - paragraph [ref=e521]: Work log (2)
+              - generic [ref=e522]:
+                - generic [ref=e524]:
+                  - img [ref=e526]
+                  - button "Runtime warning" [ref=e529]:
+                    - paragraph [ref=e530]: Runtime warning
+                - generic [ref=e532]:
+                  - img [ref=e534]
+                  - button "Runtime warning" [ref=e537]:
+                    - paragraph [ref=e538]: Runtime warning
+          - generic [ref=e256]:
+            - generic [ref=e258]:
+              - textbox [active] [ref=e259]:
+                - paragraph [ref=e539]
+              - generic: Ask anything, @tag files/folders, or use / to show available commands
+            - generic [ref=e261]:
+              - generic [ref=e262]:
+                - button "GPT-5.3-Codex-Spark" [ref=e263] [cursor=pointer]:
+                  - generic [ref=e264]:
+                    - img
+                    - generic [ref=e265]: GPT-5.3-Codex-Spark
+                    - img
+                - separator [ref=e266]
+                - button "Low" [ref=e267] [cursor=pointer]:
+                  - generic [ref=e268]:
+                    - text: Low
+                    - img
+                - separator [ref=e269]
+                - button "Build" [ref=e270] [cursor=pointer]:
+                  - img
+                  - generic [ref=e271]: Build
+                - separator [ref=e272]
+                - combobox "Runtime mode" [ref=e273] [cursor=pointer]:
+                  - img
+                  - generic [ref=e274]: Supervised
+                  - generic [ref=e275]:
+                    - img
+                - textbox [ref=e276]: approval-required
+              - generic [ref=e277]:
+                - button "Context window 15% used" [ref=e278]:
+                  - generic [ref=e279]:
+                    - img [ref=e280]
+                    - generic [ref=e283]: "15"
+                - button "Send message" [disabled]:
+                  - img
+          - generic [ref=e284]:
+            - generic [ref=e286]:
+              - img [ref=e287]
+              - text: Local checkout
+            - combobox [ref=e289] [cursor=pointer]:
+              - generic [ref=e290]: t3
+              - img
+            - textbox [ref=e291]: t3
+    - generic [ref=e293]:
+      - button "Toggle Sidebar"
+  - generic:
+    - region "Notifications"
+  - generic:
+    - region "Notifications"

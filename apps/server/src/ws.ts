@@ -131,7 +131,7 @@ function toAuthAccessStreamEvent(
   }
 }
 
-const makeWsRpcLayer = (currentSessionId: AuthSessionId) =>
+export const makeWsRpcLayer = (currentSessionId: AuthSessionId) =>
   WsRpcGroup.toLayer(
     Effect.gen(function* () {
       const projectionSnapshotQuery = yield* ProjectionSnapshotQuery;

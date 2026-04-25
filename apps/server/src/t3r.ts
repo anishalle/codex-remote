@@ -20,6 +20,10 @@ import {
   type ParsedCodexCliSession,
 } from "./bridge/CodexCliSessionImporter.ts";
 import { runServer } from "./server.ts";
+import {
+  collectWorkspaceArchiveEntries,
+  serializeWorkspaceArchiveEntries,
+} from "./t3rPush/archive.ts";
 
 const DEFAULT_REMOTE_URL = "https://codex.anishalle.com";
 const INTERNAL_DAEMON_COMMAND = "__daemon";
@@ -532,6 +536,7 @@ async function createPushArchive(candidate: PushCandidate): Promise<{
   const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "t3r-push-"));
   const metadataRoot = path.join(tempDir, "metadata");
   const metadataDir = path.join(metadataRoot, T3R_PUSH_METADATA_DIR);
+  const archiveEntriesPath = path.join(tempDir, "archive-entries.txt");
   const archivePath = path.join(tempDir, `${candidate.repoName}.tar.gz`);
   await fs.mkdir(metadataDir, { recursive: true });
   await fs.writeFile(path.join(metadataDir, "session.jsonl"), candidate.loaded.contents, "utf8");
@@ -549,13 +554,20 @@ async function createPushArchive(candidate: PushCandidate): Promise<{
     ),
     "utf8",
   );
+  const archiveEntries = await collectWorkspaceArchiveEntries(workspaceRoot);
+  await fs.writeFile(
+    archiveEntriesPath,
+    serializeWorkspaceArchiveEntries(archiveEntries),
+    "utf8",
+  );
 
   await runProcess("tar", [
     "-czf",
     archivePath,
     "-C",
     workspaceRoot,
-    ".",
+    "-T",
+    archiveEntriesPath,
     "-C",
     metadataRoot,
     T3R_PUSH_METADATA_DIR,
@@ -718,7 +730,7 @@ function runDaemon(): void {
     devUrl: Option.none(),
     noBrowser: Option.some(true),
     bootstrapFd: Option.none(),
-    autoBootstrapProjectFromCwd: Option.some(true),
+    autoBootstrapProjectFromCwd: Option.some(false),
     logWebSocketEvents: Option.none(),
     bridgeUrl: Option.some(remoteUrl),
     bridgeTokenFile: Option.some(paths.tokenPath),

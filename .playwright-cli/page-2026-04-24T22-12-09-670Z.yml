@@ -1,0 +1,345 @@
+- generic [ref=e1]:
+  - generic [ref=e3]:
+    - generic [ref=e6]:
+      - link "Go to threads" [ref=e9] [cursor=pointer]:
+        - /url: /
+        - img "T3" [ref=e10]
+        - generic [ref=e12]: Code
+        - generic [ref=e13]: Alpha
+      - generic [ref=e15]:
+        - list [ref=e17]:
+          - listitem [ref=e18]:
+            - button "Search ⌘K" [ref=e19] [cursor=pointer]:
+              - img [ref=e20]
+              - generic [ref=e23]: Search
+              - generic: ⌘K
+        - generic [ref=e24]:
+          - generic [ref=e25]:
+            - generic [ref=e26]: Projects
+            - generic [ref=e27]:
+              - button [ref=e28] [cursor=pointer]:
+                - img [ref=e29]
+              - button "Add project" [ref=e32] [cursor=pointer]:
+                - img [ref=e33]
+          - list [ref=e34]:
+            - listitem [ref=e80]:
+              - generic [ref=e81]:
+                - button "anishalle/codex-remote 2 projects" [ref=e82] [cursor=pointer]:
+                  - img [ref=e83]
+                  - generic [ref=e85]:
+                    - generic [ref=e86]: anishalle/codex-remote
+                    - generic [ref=e87]: 2 projects
+                - generic "Remote project":
+                  - img
+                - generic:
+                  - button "Create new thread in anishalle/codex-remote":
+                    - img
+              - list [ref=e88]:
+                - listitem [ref=e256]:
+                  - button "Working say Hi, nothing else Interrupt say Hi, nothing else" [ref=e347] [cursor=pointer]:
+                    - generic [ref=e258]:
+                      - generic "Working" [ref=e348]:
+                        - generic [ref=e350]: Working
+                      - generic [ref=e262]: say Hi, nothing else
+                    - button "Interrupt say Hi, nothing else" [ref=e351]: Stop
+                - listitem [ref=e266]:
+                  - button "Simple Greeting Reply Archive Simple Greeting Reply Anish’s MacBook Pro just now" [ref=e267] [cursor=pointer]:
+                    - generic [ref=e269]: Simple Greeting Reply
+                    - generic [ref=e271]:
+                      - generic:
+                        - button "Archive Simple Greeting Reply":
+                          - img
+                      - generic:
+                        - generic:
+                          - generic "Anish’s MacBook Pro":
+                            - img
+                          - generic: just now
+                - listitem [ref=e89]:
+                  - button "The following is the Codex agent history whose request action you are assessing Archive The following is the Codex agent history whose request action you are assessing Anish’s MacBook Pro 4h ago" [ref=e90] [cursor=pointer]:
+                    - generic [ref=e92]: The following is the Codex agent history whose request action you are assessing
+                    - generic [ref=e94]:
+                      - generic:
+                        - button "Archive The following is the Codex agent history whose request action you are assessing":
+                          - img
+                      - generic:
+                        - generic:
+                          - generic "Anish’s MacBook Pro":
+                            - img
+                          - generic: 4h ago
+                - listitem [ref=e95]:
+                  - button "we're still getting the double counting error when we send messages from the SE Archive we're still getting the double counting error when we send messages from the SE Anish’s MacBook Pro 4h ago" [ref=e96] [cursor=pointer]:
+                    - generic [ref=e98]: we're still getting the double counting error when we send messages from the SE
+                    - generic [ref=e100]:
+                      - generic:
+                        - button "Archive we're still getting the double counting error when we send messages from the SE":
+                          - img
+                      - generic:
+                        - generic:
+                          - generic "Anish’s MacBook Pro":
+                            - img
+                          - generic: 4h ago
+                - listitem [ref=e101]:
+                  - button "codex, respond with ONLY a \"hi\" Archive codex, respond with ONLY a \"hi\" Anish’s MacBook Pro 5h ago" [ref=e272] [cursor=pointer]:
+                    - generic [ref=e104]: codex, respond with ONLY a "hi"
+                    - generic [ref=e106]:
+                      - generic:
+                        - button "Archive codex, respond with ONLY a \"hi\"":
+                          - img
+                      - generic:
+                        - generic:
+                          - generic "Anish’s MacBook Pro":
+                            - img
+                          - generic: 5h ago
+                - listitem [ref=e107]:
+                  - button "codex resume 019dbe5a-242b-76b2-94bd-7e404b216fac Archive codex resume 019dbe5a-242b-76b2-94bd-7e404b216fac Anish’s MacBook Pro 12h ago" [ref=e108] [cursor=pointer]:
+                    - generic [ref=e110]: codex resume 019dbe5a-242b-76b2-94bd-7e404b216fac
+                    - generic [ref=e112]:
+                      - generic:
+                        - button "Archive codex resume 019dbe5a-242b-76b2-94bd-7e404b216fac":
+                          - img
+                      - generic:
+                        - generic:
+                          - generic "Anish’s MacBook Pro":
+                            - img
+                          - generic: 12h ago
+                - listitem [ref=e128]:
+                  - button "Completed Show more" [ref=e273] [cursor=pointer]:
+                    - generic [ref=e130]:
+                      - generic "Completed" [ref=e274]:
+                        - generic [ref=e276]: Completed
+                      - generic [ref=e131]: Show more
+            - listitem [ref=e35]:
+              - generic [ref=e36]:
+                - button "handshake local" [ref=e37] [cursor=pointer]:
+                  - img [ref=e38]
+                  - generic [ref=e40]:
+                    - generic [ref=e41]: handshake
+                    - generic [ref=e42]: local
+                - generic:
+                  - button "Create new thread in handshake":
+                    - img
+              - list [ref=e43]:
+                - listitem [ref=e44]:
+                  - button "Check Helix task intake eligibility Archive Check Helix task intake eligibility 1h ago" [ref=e45] [cursor=pointer]:
+                    - generic [ref=e47]: Check Helix task intake eligibility
+                    - generic [ref=e49]:
+                      - generic:
+                        - button "Archive Check Helix task intake eligibility":
+                          - img
+                      - generic:
+                        - generic:
+                          - generic: 1h ago
+            - listitem [ref=e50]:
+              - generic [ref=e51]:
+                - button "codex-remote local" [ref=e52] [cursor=pointer]:
+                  - img [ref=e53]
+                  - generic [ref=e55]:
+                    - generic [ref=e56]: codex-remote
+                    - generic [ref=e57]: local
+                - generic:
+                  - button "Create new thread in codex-remote":
+                    - img
+              - list [ref=e58]:
+                - listitem [ref=e59]:
+                  - button "/workspace/codex-remote Archive /workspace/codex-remote 2h ago" [ref=e60] [cursor=pointer]:
+                    - generic [ref=e62]: /workspace/codex-remote
+                    - generic [ref=e64]:
+                      - generic:
+                        - button "Archive /workspace/codex-remote":
+                          - img
+                      - generic:
+                        - generic:
+                          - generic: 2h ago
+            - listitem [ref=e65]:
+              - generic [ref=e66]:
+                - button "skills local" [ref=e67] [cursor=pointer]:
+                  - img [ref=e68]
+                  - generic [ref=e70]:
+                    - generic [ref=e71]: skills
+                    - generic [ref=e72]: local
+                - generic:
+                  - button "Create new thread in skills":
+                    - img
+              - list [ref=e73]:
+                - listitem [ref=e74]:
+                  - button "Clone skills repo from GitHub Archive Clone skills repo from GitHub 4h ago" [ref=e75] [cursor=pointer]:
+                    - generic [ref=e77]: Clone skills repo from GitHub
+                    - generic [ref=e79]:
+                      - generic:
+                        - button "Archive Clone skills repo from GitHub":
+                          - img
+                      - generic:
+                        - generic:
+                          - generic: 4h ago
+            - listitem [ref=e132]:
+              - generic [ref=e133]:
+                - button "~ local" [ref=e134] [cursor=pointer]:
+                  - img [ref=e135]
+                  - generic [ref=e137]:
+                    - generic [ref=e138]: ~
+                    - generic [ref=e139]: local
+                - generic:
+                  - button "Create new thread in ~":
+                    - img
+              - list [ref=e140]:
+                - listitem [ref=e141]:
+                  - generic [ref=e143]: No threads yet
+            - listitem [ref=e144]:
+              - generic [ref=e145]:
+                - button "claude-code-main" [ref=e146] [cursor=pointer]:
+                  - img [ref=e147]
+                  - generic [ref=e150]: claude-code-main
+                - generic "Remote project":
+                  - img
+                - generic:
+                  - button "Create new thread in claude-code-main":
+                    - img
+              - list [ref=e151]:
+                - listitem [ref=e152]:
+                  - generic [ref=e154]: No threads yet
+      - separator [ref=e155]
+      - list [ref=e157]:
+        - listitem [ref=e158]:
+          - button "Settings" [ref=e159] [cursor=pointer]:
+            - img [ref=e160]
+            - generic [ref=e163]: Settings
+      - button "Resize Sidebar" [ref=e164]
+    - main [ref=e165]:
+      - generic [ref=e166]:
+        - generic [ref=e168]:
+          - generic [ref=e169]:
+            - heading "Simple Greeting Reply" [level=2] [ref=e170]
+            - generic [ref=e172]: codex-remote
+          - generic [ref=e173]:
+            - button "Add action" [ref=e174] [cursor=pointer]:
+              - img
+              - generic [ref=e175]: Add action
+            - group "Subscription actions" [ref=e176]:
+              - button "Open" [disabled]:
+                - generic: Open
+              - separator
+              - button "Copy options" [ref=e177] [cursor=pointer]:
+                - img
+            - group "Git actions" [ref=e178]:
+              - button "Commit, push & PR" [ref=e179] [cursor=pointer]:
+                - img
+                - generic [ref=e180]: Commit, push & PR
+              - separator
+              - button "Git action options" [ref=e181] [cursor=pointer]:
+                - img
+            - button "Toggle terminal drawer" [ref=e182] [cursor=pointer]:
+              - img
+            - button "Toggle diff panel" [ref=e183] [cursor=pointer]:
+              - img
+        - generic [ref=e185]:
+          - generic [ref=e191]:
+            - generic [ref=e356]:
+              - generic [ref=e357]: say Hi, nothing else
+              - generic [ref=e358]:
+                - generic [ref=e359]:
+                  - button "Copy link" [ref=e360] [cursor=pointer]:
+                    - img
+                  - button "Revert to this message" [ref=e361] [cursor=pointer]:
+                    - img
+                - paragraph [ref=e362]: 11:15:59 PM
+            - generic [ref=e366]:
+              - paragraph [ref=e368]: Hi
+              - generic [ref=e369]:
+                - paragraph [ref=e370]: 11:16:04 PM • 4.7s
+                - button "Copy link" [ref=e372] [cursor=pointer]:
+                  - img
+            - generic [ref=e281]:
+              - generic [ref=e282]: Run /Users/ani/workspaces/github.com/anishalle/codex-remote and reply with only the working directory.
+              - generic [ref=e283]:
+                - generic [ref=e284]:
+                  - button "Copy link" [ref=e285] [cursor=pointer]:
+                    - img
+                  - button "Revert to this message" [ref=e286] [cursor=pointer]:
+                    - img
+                - paragraph [ref=e287]: 5:10:39 PM
+            - generic [ref=e291]:
+              - paragraph [ref=e293]: I'll confirm the requested path is reachable and return its working directory exactly.
+              - paragraph [ref=e295]: 5:10:43 PM • 3.4s
+            - generic [ref=e317]:
+              - paragraph [ref=e319]: /Users/ani/workspaces/github.com/anishalle/codex-remote
+              - generic [ref=e320]:
+                - paragraph [ref=e321]: 5:10:43 PM • 654ms
+                - button "Copy link" [ref=e374] [cursor=pointer]:
+                  - img
+            - generic [ref=e379]:
+              - generic [ref=e380]: Run the shell command pwd exactly once and reply with only the working directory.
+              - generic [ref=e381]:
+                - generic [ref=e382]:
+                  - button "Copy link" [ref=e383] [cursor=pointer]:
+                    - img
+                  - button "Revert to this message" [ref=e384] [cursor=pointer]:
+                    - img
+                - paragraph [ref=e385]: 5:12:02 PM
+            - generic [ref=e389]:
+              - paragraph [ref=e391]:
+                - text: Running
+                - code [ref=e392]: pwd
+                - text: once and returning only the path.
+              - paragraph [ref=e394]: 5:12:03 PM • 1.3s
+            - generic [ref=e401]:
+              - img [ref=e403]
+              - paragraph [ref=e407]:
+                - text: Ran command
+                - generic [ref=e408]: "- pwd"
+            - generic [ref=e411]:
+              - generic [ref=e414]: Response • Worked for 2.7s
+              - generic [ref=e416]:
+                - paragraph [ref=e418]: /Users/ani/workspaces/github.com/anishalle/codex-remote
+                - generic [ref=e419]:
+                  - paragraph [ref=e420]: 5:12:04 PM • 766ms
+                  - button "Copy link" [ref=e422] [cursor=pointer]:
+                    - img
+          - generic [ref=e218]:
+            - generic [ref=e220]:
+              - textbox [active] [ref=e221]:
+                - paragraph [ref=e423]
+              - generic: Ask anything, @tag files/folders, or use / to show available commands
+            - generic [ref=e223]:
+              - generic [ref=e224]:
+                - button "GPT-5.3-Codex-Spark" [ref=e340] [cursor=pointer]:
+                  - generic [ref=e226]:
+                    - img
+                    - generic [ref=e227]: GPT-5.3-Codex-Spark
+                    - img
+                - separator [ref=e228]
+                - button "Low" [ref=e341] [cursor=pointer]:
+                  - generic [ref=e230]:
+                    - text: Low
+                    - img
+                - separator [ref=e231]
+                - button "Build" [ref=e232] [cursor=pointer]:
+                  - img
+                  - generic [ref=e233]: Build
+                - separator [ref=e234]
+                - combobox "Runtime mode" [ref=e235] [cursor=pointer]:
+                  - img
+                  - generic [ref=e236]: Supervised
+                  - generic [ref=e237]:
+                    - img
+                - textbox [ref=e238]: approval-required
+              - generic [ref=e239]:
+                - button "Context window 15% used" [ref=e342]:
+                  - generic [ref=e241]:
+                    - img [ref=e242]
+                    - generic [ref=e245]: "15"
+                - button "Send message" [disabled]:
+                  - img
+          - generic [ref=e246]:
+            - generic [ref=e248]:
+              - img [ref=e249]
+              - text: Local checkout
+            - combobox [ref=e251] [cursor=pointer]:
+              - generic [ref=e252]: t3
+              - img
+            - textbox [ref=e253]: t3
+    - generic [ref=e255]:
+      - button "Toggle Sidebar"
+  - generic:
+    - region "Notifications"
+  - generic:
+    - region "Notifications"

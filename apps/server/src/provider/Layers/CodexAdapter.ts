@@ -188,6 +188,20 @@ function toTurnStatus(
   }
 }
 
+function toRuntimeItemStatus(
+  value: unknown,
+): "inProgress" | "completed" | "failed" | "declined" | undefined {
+  switch (value) {
+    case "inProgress":
+    case "completed":
+    case "failed":
+    case "declined":
+      return value;
+    default:
+      return undefined;
+  }
+}
+
 function normalizeItemType(raw: string | undefined | null): string {
   const type = trimText(raw);
   if (!type) return "item";
@@ -446,13 +460,14 @@ function mapItemLifecycle(
   if (itemType === "unknown" && lifecycle !== "item.updated") {
     return undefined;
   }
+  const itemRecord = item as Record<string, unknown>;
 
   const detail = itemDetail(item);
   const status =
     lifecycle === "item.started"
       ? "inProgress"
       : lifecycle === "item.completed"
-        ? "completed"
+        ? (toRuntimeItemStatus(itemRecord.status) ?? "completed")
         : undefined;
 
   return {

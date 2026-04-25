@@ -1054,7 +1054,7 @@ export default function ChatView(props: ChatViewProps) {
     selectedProviderByThreadId ?? threadProvider ?? "codex",
   );
   const selectedProvider: ProviderKind = lockedProvider ?? unlockedSelectedProvider;
-  const phase = derivePhase(activeThread?.session ?? null);
+  const phase = derivePhase(activeThread?.session ?? null, activeThread?.latestTurn ?? null);
   const threadActivities = activeThread?.activities ?? EMPTY_ACTIVITIES;
   const workLogEntries = useMemo(
     () => deriveWorkLogEntries(threadActivities, activeLatestTurn?.turnId ?? undefined),
