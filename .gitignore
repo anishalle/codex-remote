@@ -3,3 +3,32 @@ data/
 apps/web/dist/
 *.tsbuildinfo
 .DS_Store
+
+# Local environment and credentials
+.env
+.env.*
+!.env.example
+!.env.*.example
+.npmrc
+.pypirc
+.netrc
+*.pem
+*.key
+*.p12
+*.pfx
+*.crt
+*.csr
+
+# Local runtime data
+*.sqlite
+*.sqlite-*
+*.db
+*.db-*
+*.log
+
+# Generated/test artifacts
+.playwright-cli/
+output/
+apps/server/dist/
+apps/web/.vitest-attachments/
+apps/web/src/components/__screenshots__/
